@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Investment Advisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #06070A;
+    --bg-card: rgba(255,255,255,0.025);
+    --bg-card-hover: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --text-primary: #F0F1F3;
+    --text-secondary: rgba(255,255,255,0.55);
+    --text-muted: rgba(255,255,255,0.3);
+    --text-dim: rgba(255,255,255,0.18);
+    --accent-green: #34D399;
+    --accent-red: #F87171;
+    --accent-amber: #FBBF24;
+    --accent-blue: #60A5FA;
+    --accent-violet: #A78BFA;
+    --cat-core: #3B82F6;
+    --cat-growth: #8B5CF6;
+    --cat-tactical: #F59E0B;
+    --cat-alpha: #10B981;
+    --cat-hedge: #EF4444;
+    --cat-crypto: #F97316;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'DM Mono', monospace;
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Noise texture overlay ────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Header ───────────────────────────────────────── */
+  .header {
+    padding: 24px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+    animation: fadeIn 0.6s ease;
+  }
+
+  .header-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .pulse-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  .header-eyebrow span {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(24px, 5vw, 32px);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #fff;
+  }
+
+  .header-meta {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* ── Tabs ──────────────────────────────────────────── */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tab:hover { color: var(--text-secondary); }
+  .tab.active { color: var(--accent-green); border-bottom-color: var(--accent-green); }
+
+  /* ── Cards ─────────────────────────────────────────── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    transition: border-color 0.3s;
+    animation: fadeUp 0.5s ease forwards;
+    opacity: 0;
+  }
+  .card:hover { border-color: var(--border-hover); }
+
+  .card-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    font-weight: 400;
+  }
+
+  /* ── KPI Grid ──────────────────────────────────────── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .kpi-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .kpi-value.green { color: var(--accent-green); }
+  .kpi-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ── Allocation ────────────────────────────────────── */
+  .alloc-bar {
+    display: flex;
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+    gap: 2px;
+    margin-bottom: 16px;
+  }
+
+  .alloc-bar-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 500;
+    color: #fff;
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    letter-spacing: 0.5px;
+  }
+
+  .alloc-item {
+    padding: 14px;
+    background: rgba(255,255,255,0.015);
+    border-radius: 6px;
+    border-left: 3px solid var(--cat-core);
+    margin-bottom: 8px;
+    animation: fadeUp 0.5s ease forwards;
+    opacity: 0;
+  }
+
+  .alloc-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .alloc-ticker {
+    font-family: 'Outfit', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .alloc-name {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .alloc-amount {
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .alloc-rationale {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-top: 8px;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* ── Research Log ──────────────────────────────────── */
+  .research-item {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    animation: fadeUp 0.5s ease forwards;
+    opacity: 0;
+  }
+  .research-item:last-child { border-bottom: none; }
+
+  .research-date {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    color: #fff;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .research-summary {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .movers {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  /* ── Risk Items ────────────────────────────────────── */
+  .risk-item {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .risk-icon { color: var(--accent-amber); flex-shrink: 0; }
+
+  /* ── Watchlist ─────────────────────────────────────── */
+  .watch-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    align-items: flex-start;
+  }
+  .watch-item:last-child { border-bottom: none; }
+  .watch-ticker {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    color: var(--accent-amber);
+    min-width: 48px;
+    font-size: 13px;
+  }
+  .watch-trigger { font-size: 12px; color: var(--text-secondary); }
+
+  /* ── Chart ─────────────────────────────────────────── */
+  .chart-container { padding: 8px 0; }
+  .chart-container svg { width: 100%; height: auto; }
+
+  /* ── Disclaimer ────────────────────────────────────── */
+  .disclaimer {
+    margin-top: 24px;
+    padding: 14px;
+    background: rgba(239,68,68,0.04);
+    border: 1px solid rgba(239,68,68,0.1);
+    border-radius: 8px;
+    font-size: 11px;
+    color: rgba(239,68,68,0.6);
+    line-height: 1.6;
+  }
+
+  /* ── Footer ────────────────────────────────────────── */
+  .footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  /* ── Loading ───────────────────────────────────────── */
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+  .loading-spinner {
+    width: 24px; height: 24px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent-green);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+
+  /* ── Animations ────────────────────────────────────── */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+    50% { box-shadow: 0 0 12px 3px rgba(52, 211, 153, 0.2); }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Responsive ────────────────────────────────────── */
+  @media (max-width: 480px) {
+    .container { padding: 12px 12px 40px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .card { padding: 16px; }
+    .alloc-item { padding: 12px; }
+    .kpi-value { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <div class="loading" id="loading">
+    <div class="loading-spinner"></div>
+    Loading latest recommendations...
+  </div>
+</div>
+
+<script>
+// ── Configuration ───────────────────────────────────────
+// Change this to your GitHub username and repo
+const GITHUB_USER = 'yrbashid';
+const GITHUB_REPO = 'ai-investment-advisor';
+const DATA_BASE = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/data`;
+
+const CATEGORY_COLORS = {
+  'Core': 'var(--cat-core)',
+  'Growth': 'var(--cat-growth)',
+  'Tactical': 'var(--cat-tactical)',
+  'Alpha': 'var(--cat-alpha)',
+  'Hedge': 'var(--cat-hedge)',
+  'Crypto': 'var(--cat-crypto)',
+};
+
+// ── Data Fetching ───────────────────────────────────────
+async function fetchJSON(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+async function loadData() {
+  // Try to fetch the latest monthly recommendation
+  const now = new Date();
+  let monthlyData = null;
+
+  // Try current month and previous month
+  for (let offset = 0; offset <= 2; offset++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    monthlyData = await fetchJSON(`${DATA_BASE}/monthly/recommendations_${key}.json`);
+    if (monthlyData) break;
+  }
+
+  // Try to fetch recent weekly data
+  const weeklyData = [];
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const data = await fetchJSON(`${DATA_BASE}/weekly/research_${key}.json`);
+    if (data) weeklyData.push(data);
+    if (weeklyData.length >= 5) break;
+  }
+
+  return { monthly: monthlyData, weekly: weeklyData };
+}
+
+// ── Parsing ─────────────────────────────────────────────
+function parseAllocations(report) {
+  if (!report) return [];
+  const allocations = [];
+  // Match patterns like "$350 → VOO" or "$300 → BTC-USD" or "**$350 → VOO**"
+  const regex = /\$(\d+)\s*[→→\-–]\s*\*{0,2}([A-Z0-9\-]+)\*{0,2}\s*[\(\*]*([^)\n]*)/g;
+  let match;
+  while ((match = regex.exec(report)) !== null) {
+    const amount = parseInt(match[1]);
+    const ticker = match[2].replace(/\*/g, '');
+    const desc = match[3].replace(/\*+/g, '').trim();
+    if (amount > 0 && amount <= 1000) {
+      allocations.push({
+        ticker,
+        amount,
+        pct: Math.round((amount / 1000) * 100),
+        description: desc || '',
+        category: guessCategory(ticker, desc),
+      });
+    }
+  }
+  return allocations;
+}
+
+function guessCategory(ticker, desc) {
+  const d = (desc + ' ' + ticker).toLowerCase();
+  if (d.includes('btc') || d.includes('eth') || d.includes('sol') || d.includes('crypto') || d.includes('doge') || d.includes('ada') || d.includes('xrp') || d.includes('avax') || d.includes('link')) return 'Crypto';
+  if (d.includes('core') || d.includes('s&p') || d.includes('index') || d.includes('broad') || d.includes('voo') || d.includes('spy') || d.includes('vti')) return 'Core';
+  if (d.includes('hedge') || d.includes('gold') || d.includes('bond') || d.includes('treasury') || d.includes('gld') || d.includes('bnd') || d.includes('tlt')) return 'Hedge';
+  if (d.includes('alpha') || d.includes('individual') || d.includes('conviction') || d.includes('breakout')) return 'Alpha';
+  if (d.includes('tactical') || d.includes('sector') || d.includes('rotation') || d.includes('xl')) return 'Tactical';
+  return 'Growth';
+}
+
+function parseWatchlist(report) {
+  if (!report) return [];
+  const items = [];
+  const lines = report.split('\n');
+  let inWatchlist = false;
+  for (const line of lines) {
+    if (/watchlist/i.test(line) && /#{1,3}/.test(line)) { inWatchlist = true; continue; }
+    if (inWatchlist && /^#{1,3}\s/.test(line) && !/watchlist/i.test(line)) break;
+    if (inWatchlist) {
+      const m = line.match(/\*{0,2}([A-Z]{2,6}(?:-USD)?)\*{0,2}\s*[:\-–—]\s*(.*)/);
+      if (m) items.push({ ticker: m[1], trigger: m[2].replace(/\*+/g, '').trim() });
+    }
+  }
+  return items;
+}
+
+function parseRisks(report) {
+  if (!report) return [];
+  const risks = [];
+  const lines = report.split('\n');
+  let inRisk = false;
+  for (const line of lines) {
+    if (/risk/i.test(line) && /#{1,3}/.test(line)) { inRisk = true; continue; }
+    if (inRisk && /^#{1,3}\s/.test(line) && !/risk/i.test(line)) break;
+    if (inRisk) {
+      const cleaned = line.replace(/^[\s\-\*•]+/, '').trim();
+      if (cleaned.length > 10) risks.push(cleaned);
+    }
+  }
+  return risks.slice(0, 4);
+}
+
+function parseRecap(report) {
+  if (!report) return '';
+  const lines = report.split('\n');
+  let inRecap = false;
+  let recap = [];
+  for (const line of lines) {
+    if (/recap|overview|market summary/i.test(line) && /#{1,3}/.test(line)) { inRecap = true; continue; }
+    if (inRecap && /^#{1,3}\s/.test(line)) break;
+    if (inRecap) {
+      const cleaned = line.trim();
+      if (cleaned) recap.push(cleaned);
+    }
+  }
+  return recap.join(' ').replace(/\*+/g, '').trim();
+}
+
+function parseConfidence(report) {
+  if (!report) return 'N/A';
+  const m = report.match(/confidence.*?:\s*\*{0,2}(Low|Medium|High|Medium-High|Medium-Low)\*{0,2}/i);
+  return m ? m[1] : 'N/A';
+}
+
+function extractTopMovers(rawData) {
+  if (!rawData) return [];
+  const entries = Object.entries(rawData);
+  entries.sort((a, b) => Math.abs(b[1].week_change_pct) - Math.abs(a[1].week_change_pct));
+  return entries.slice(0, 4).map(([ticker, d]) => ({
+    ticker,
+    change: d.week_change_pct,
+    price: d.current_price,
+  }));
+}
+
+// ── Rendering ───────────────────────────────────────────
+function render(data) {
+  const app = document.getElementById('app');
+  const monthly = data.monthly;
+  const weekly = data.weekly;
+
+  if (!monthly && weekly.length === 0) {
+    app.innerHTML = `
+      <div class="header">
+        <div class="header-eyebrow"><div class="pulse-dot"></div><span>AI Investment Advisor</span></div>
+        <h1>Dashboard</h1>
+      </div>
+      <div class="card" style="animation-delay:0.1s;text-align:center;padding:40px 20px;">
+        <div style="font-size:13px;color:var(--text-secondary);">
+          No data yet. Run the pipeline first:<br><br>
+          <code style="background:rgba(255,255,255,0.06);padding:6px 12px;border-radius:4px;font-size:12px;">python src/market_research.py && python src/generate_recs.py</code><br><br>
+          Then push to GitHub so this dashboard can read the data.
+        </div>
+      </div>`;
+    return;
+  }
+
+  const report = monthly?.report || '';
+  const allocations = parseAllocations(report);
+  const watchlist = parseWatchlist(report);
+  const risks = parseRisks(report);
+  const recap = parseRecap(report);
+  const confidence = parseConfidence(report);
+  const monthLabel = monthly?.month || new Date().toISOString().slice(0, 7);
+  const generatedAt = monthly?.generated_at ? new Date(monthly.generated_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : '';
+  const budget = monthly?.config?.budget || 1000;
+  const totalAllocated = allocations.reduce((s, a) => s + a.amount, 0);
+
+  let currentTab = 'recs';
+
+  function renderContent() {
+    const tabContent = document.getElementById('tab-content');
+    if (!tabContent) return;
+
+    if (currentTab === 'recs') {
+      tabContent.innerHTML = renderRecsTab(allocations, watchlist, risks, recap, confidence, budget, totalAllocated);
+    } else if (currentTab === 'research') {
+      tabContent.innerHTML = renderResearchTab(weekly);
+    }
+
+    // Trigger animations
+    tabContent.querySelectorAll('.card, .alloc-item, .research-item').forEach((el, i) => {
+      el.style.animationDelay = `${i * 0.06}s`;
+    });
+  }
+
+  app.innerHTML = `
+    <div class="header">
+      <div class="header-eyebrow"><div class="pulse-dot"></div><span>AI Investment Advisor</span></div>
+      <h1>${formatMonth(monthLabel)} Report</h1>
+      <div class="header-meta">${generatedAt ? `Generated ${generatedAt}` : ''} · Model: ${monthly?.config?.model || 'claude-haiku'}</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="recs">Recommendations</button>
+      <button class="tab" data-tab="research">Weekly Research</button>
+    </div>
+
+    <div id="tab-content"></div>
+
+    <div class="disclaimer">
+      <strong>⚠ Disclaimer:</strong> This is AI-generated research for educational purposes only. It is NOT financial advice. Always do your own due diligence. Past performance does not guarantee future results.
+    </div>
+
+    <div class="footer">
+      AI Investment Advisor · Powered by Claude + yfinance + GitHub Actions
+    </div>
+  `;
+
+  // Tab switching
+  app.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      app.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentTab = tab.dataset.tab;
+      renderContent();
+    });
+  });
+
+  renderContent();
+}
+
+function renderRecsTab(allocations, watchlist, risks, recap, confidence, budget, totalAllocated) {
+  return `
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      ${kpiCard('Monthly Budget', `$${budget}`, 'To deploy this month')}
+      ${kpiCard('Positions', `${allocations.length}`, `$${totalAllocated} allocated`)}
+      ${kpiCard('Confidence', confidence, 'AI assessment', confidence === 'High' ? 'green' : '')}
+      ${kpiCard('Risk Level', 'Moderate', 'Growth-oriented')}
+    </div>
+
+    <!-- Recap -->
+    ${recap ? `
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-label">Market Recap</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.7;">${recap}</div>
+    </div>` : ''}
+
+    <!-- Allocation Bar -->
+    ${allocations.length > 0 ? `
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-label">Allocation — $${budget}</div>
+      <div class="alloc-bar">
+        ${allocations.map(a => `
+          <div class="alloc-bar-segment" style="width:${a.pct}%;background:${CATEGORY_COLORS[a.category] || 'var(--cat-growth)'}">
+            ${a.pct >= 12 ? a.ticker : ''}
+          </div>
+        `).join('')}
+      </div>
+
+      ${allocations.map((a, i) => `
+        <div class="alloc-item" style="border-left-color:${CATEGORY_COLORS[a.category] || 'var(--cat-growth)'};animation-delay:${i * 0.08}s">
+          <div class="alloc-header">
+            <span class="alloc-ticker">${a.ticker}</span>
+            <span class="tag" style="background:${CATEGORY_COLORS[a.category] || 'var(--cat-growth)'}22;color:${CATEGORY_COLORS[a.category] || 'var(--cat-growth)'}">
+              ${a.category}
+            </span>
+            <span class="alloc-amount" style="margin-left:auto;">$${a.amount}</span>
+          </div>
+          ${a.description ? `<div class="alloc-rationale">${a.description}</div>` : ''}
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${a.pct}%;background:${CATEGORY_COLORS[a.category] || 'var(--cat-growth)'}"></div>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">${a.pct}% of portfolio</div>
+        </div>
+      `).join('')}
+    </div>` : ''}
+
+    <!-- Watchlist -->
+    ${watchlist.length > 0 ? `
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-label">Watchlist — Not Buying Yet</div>
+      ${watchlist.map(w => `
+        <div class="watch-item">
+          <span class="watch-ticker">${w.ticker}</span>
+          <span class="watch-trigger">${w.trigger}</span>
+        </div>
+      `).join('')}
+    </div>` : ''}
+
+    <!-- Risks -->
+    ${risks.length > 0 ? `
+    <div class="card">
+      <div class="card-label">Risk Assessment</div>
+      ${risks.map(r => `
+        <div class="risk-item">
+          <span class="risk-icon">▲</span>
+          <span>${r}</span>
+        </div>
+      `).join('')}
+    </div>` : ''}
+  `;
+}
+
+function renderResearchTab(weekly) {
+  if (weekly.length === 0) {
+    return `<div class="card"><div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">No weekly research data found yet.</div></div>`;
+  }
+
+  return `
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:16px 20px 0;">
+        <div class="card-label">Weekly Research Log</div>
+      </div>
+      ${weekly.map((w, i) => {
+        const movers = extractTopMovers(w.raw_data);
+        return `
+          <div class="research-item" style="animation-delay:${i * 0.08}s">
+            <div class="research-date">Week of ${w.date}</div>
+            <div class="research-summary">${truncate(w.summary, 300)}</div>
+            ${movers.length > 0 ? `
+            <div class="movers">
+              ${movers.map(m => `
+                <span class="tag" style="background:${m.change >= 0 ? 'rgba(52,211,153,0.1)' : 'rgba(248,113,113,0.1)'};color:${m.change >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">
+                  ${m.ticker} ${m.change >= 0 ? '+' : ''}${m.change.toFixed(1)}%
+                </span>
+              `).join('')}
+            </div>` : ''}
+          </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+// ── Helpers ──────────────────────────────────────────────
+function kpiCard(label, value, sub, cls = '') {
+  return `
+    <div class="card">
+      <div class="card-label">${label}</div>
+      <div class="kpi-value ${cls}">${value}</div>
+      <div class="kpi-sub">${sub}</div>
+    </div>`;
+}
+
+function formatMonth(m) {
+  try {
+    const [y, mo] = m.split('-');
+    return new Date(y, mo - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  } catch { return m; }
+}
+
+function truncate(str, len) {
+  if (!str) return '';
+  // Strip markdown headers
+  str = str.replace(/^#{1,4}\s.*$/gm, '').trim();
+  return str.length > len ? str.slice(0, len) + '...' : str;
+}
+
+// ── Init ────────────────────────────────────────────────
+(async () => {
+  const data = await loadData();
+  render(data);
+})();
+</script>
+
+</body>
+</html>
