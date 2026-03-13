@@ -74,7 +74,7 @@ ALL_TICKERS = list(set(ALL_TICKERS))  # deduplicate
 # ── Model Configuration ─────────────────────────────────────────────
 # Haiku for routine summaries (cheap), Sonnet for deep analysis
 MODEL_WEEKLY = "claude-haiku-4-5-20251001"
-MODEL_MONTHLY = "claude-haiku-4-5-20251001"
+MODEL_MONTHLY = "claude-opus-4-6"
 MAX_TOKENS_WEEKLY = 2048
 MAX_TOKENS_MONTHLY = 4096
 
