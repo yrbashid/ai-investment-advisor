@@ -3,8 +3,7 @@
 *.env
 
 # Generated data (re-created by the pipeline)
-data/weekly/
-data/monthly/
+
 
 # Python
 __pycache__/
