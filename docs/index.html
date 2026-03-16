@@ -447,23 +447,71 @@ async function loadData() {
 function parseAllocations(report) {
   if (!report) return [];
   const allocations = [];
-  // Match patterns like "$350 → VOO" or "$300 → BTC-USD" or "**$350 → VOO**"
-  const regex = /\$(\d+)\s*[→→\-–]\s*\*{0,2}([A-Z0-9\-]+)\*{0,2}\s*[\(\*]*([^)\n]*)/g;
+  const seen = new Set();
+  const budget = 1000;
+
+  // Strategy 1: Markdown table rows — "| **$300** | **VOO** | description | reasoning |"
+  const tableRegex = /\|\s*\*{0,2}\$(\d+)\*{0,2}\s*\|\s*\*{0,2}([A-Z0-9\-]+)\*{0,2}\s*\|\s*([^|]*)\|\s*([^|]*)\|/g;
   let match;
-  while ((match = regex.exec(report)) !== null) {
+  while ((match = tableRegex.exec(report)) !== null) {
     const amount = parseInt(match[1]);
-    const ticker = match[2].replace(/\*/g, '');
-    const desc = match[3].replace(/\*+/g, '').trim();
-    if (amount > 0 && amount <= 1000) {
+    const ticker = match[2].replace(/\*/g, '').trim();
+    if (amount > 0 && amount <= budget && !seen.has(ticker)) {
+      seen.add(ticker);
+      const name = match[3].replace(/\*+/g, '').trim();
+      const reasoning = match[4].replace(/\*+/g, '').trim();
       allocations.push({
         ticker,
         amount,
-        pct: Math.round((amount / 1000) * 100),
-        description: desc || '',
-        category: guessCategory(ticker, desc),
+        pct: Math.round((amount / budget) * 100),
+        description: reasoning || name,
+        name: name,
+        category: guessCategory(ticker, name + ' ' + reasoning),
       });
     }
   }
+
+  // Strategy 2: Arrow format — "$350 → VOO" or "$300 → BTC-USD"
+  if (allocations.length === 0) {
+    const arrowRegex = /\$(\d+)\s*[→→\-–]+\s*\*{0,2}([A-Z0-9\-]+)\*{0,2}\s*[\(\*]*([^)\n]*)/g;
+    while ((match = arrowRegex.exec(report)) !== null) {
+      const amount = parseInt(match[1]);
+      const ticker = match[2].replace(/\*/g, '');
+      const desc = match[3].replace(/\*+/g, '').trim();
+      if (amount > 0 && amount <= budget && !seen.has(ticker)) {
+        seen.add(ticker);
+        allocations.push({
+          ticker,
+          amount,
+          pct: Math.round((amount / budget) * 100),
+          description: desc || '',
+          name: '',
+          category: guessCategory(ticker, desc),
+        });
+      }
+    }
+  }
+
+  // Strategy 3: Bold ticker with dollar amount nearby — "**VOO** ... $300"
+  if (allocations.length === 0) {
+    const boldRegex = /\*{2}([A-Z0-9\-]{2,6})\*{2}[^$]*?\$(\d+)/g;
+    while ((match = boldRegex.exec(report)) !== null) {
+      const ticker = match[1];
+      const amount = parseInt(match[2]);
+      if (amount > 0 && amount <= budget && !seen.has(ticker)) {
+        seen.add(ticker);
+        allocations.push({
+          ticker,
+          amount,
+          pct: Math.round((amount / budget) * 100),
+          description: '',
+          name: '',
+          category: guessCategory(ticker, ''),
+        });
+      }
+    }
+  }
+
   return allocations;
 }
 
@@ -480,14 +528,35 @@ function guessCategory(ticker, desc) {
 function parseWatchlist(report) {
   if (!report) return [];
   const items = [];
+  const seen = new Set();
   const lines = report.split('\n');
   let inWatchlist = false;
+
   for (const line of lines) {
-    if (/watchlist/i.test(line) && /#{1,3}/.test(line)) { inWatchlist = true; continue; }
+    if (/watchlist/i.test(line) && (/#/.test(line) || /^\d+\./.test(line.trim()))) { inWatchlist = true; continue; }
     if (inWatchlist && /^#{1,3}\s/.test(line) && !/watchlist/i.test(line)) break;
-    if (inWatchlist) {
-      const m = line.match(/\*{0,2}([A-Z]{2,6}(?:-USD)?)\*{0,2}\s*[:\-–—]\s*(.*)/);
-      if (m) items.push({ ticker: m[1], trigger: m[2].replace(/\*+/g, '').trim() });
+    if (!inWatchlist) continue;
+
+    // Table format: "| **AMZN** | situation | trigger |"
+    const tableMatch = line.match(/\|\s*\*{0,2}([A-Z]{2,6}(?:-USD)?)\*{0,2}\s*\|\s*([^|]*)\|\s*([^|]*)\|/);
+    if (tableMatch) {
+      const ticker = tableMatch[1];
+      if (!seen.has(ticker)) {
+        seen.add(ticker);
+        const trigger = (tableMatch[3] || tableMatch[2]).replace(/\*+/g, '').trim();
+        items.push({ ticker, trigger });
+      }
+      continue;
+    }
+
+    // Bullet/line format: "**AMZN** — description" or "AMZN: description"
+    const lineMatch = line.match(/\*{0,2}([A-Z]{2,6}(?:-USD)?)\*{0,2}\s*[:\-–—|]\s*(.*)/);
+    if (lineMatch) {
+      const ticker = lineMatch[1];
+      if (!seen.has(ticker)) {
+        seen.add(ticker);
+        items.push({ ticker, trigger: lineMatch[2].replace(/\*+/g, '').trim() });
+      }
     }
   }
   return items;
@@ -499,14 +568,24 @@ function parseRisks(report) {
   const lines = report.split('\n');
   let inRisk = false;
   for (const line of lines) {
-    if (/risk/i.test(line) && /#{1,3}/.test(line)) { inRisk = true; continue; }
-    if (inRisk && /^#{1,3}\s/.test(line) && !/risk/i.test(line)) break;
+    if (/risk\s*assess|what could go wrong/i.test(line) && (/#/.test(line) || /^\d+\./.test(line.trim()))) { inRisk = true; continue; }
+    if (inRisk && /^#{1,3}\s/.test(line) && !/risk|wrong/i.test(line)) break;
     if (inRisk) {
+      // Table format: "| **Risk description** | impact | likelihood |"
+      const tableMatch = line.match(/\|\s*\*{0,2}([^|*][^|]+?)\*{0,2}\s*\|/);
+      if (tableMatch) {
+        const text = tableMatch[1].replace(/\*+/g, '').trim();
+        if (text.length > 15 && !/^risk|^impact|^likelihood|^---/i.test(text)) {
+          risks.push(text);
+          continue;
+        }
+      }
+      // Bullet format
       const cleaned = line.replace(/^[\s\-\*•]+/, '').trim();
-      if (cleaned.length > 10) risks.push(cleaned);
+      if (cleaned.length > 15 && !/^\|/.test(cleaned)) risks.push(cleaned);
     }
   }
-  return risks.slice(0, 4);
+  return risks.slice(0, 5);
 }
 
 function parseRecap(report) {
@@ -667,7 +746,7 @@ function renderRecsTab(allocations, watchlist, risks, recap, confidence, budget,
             </span>
             <span class="alloc-amount" style="margin-left:auto;">$${a.amount}</span>
           </div>
-          ${a.description ? `<div class="alloc-rationale">${a.description}</div>` : ''}
+          ${a.description ? `<div class="alloc-rationale">${a.name ? '<strong>' + a.name + '</strong> — ' : ''}${a.description}</div>` : ''}
           <div class="progress-bar">
             <div class="progress-fill" style="width:${a.pct}%;background:${CATEGORY_COLORS[a.category] || 'var(--cat-growth)'}"></div>
           </div>
