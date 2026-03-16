@@ -32,7 +32,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase
+          git fetch origin main
+          git reset --soft origin/main
           git add data/weekly/
           git diff --staged --quiet || git commit -m "📊 Weekly research — $(date +%Y-%m-%d)"
           git push
