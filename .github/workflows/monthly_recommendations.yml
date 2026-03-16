@@ -42,8 +42,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git reset --soft origin/main
           git add data/monthly/
           git diff --staged --quiet || git commit -m "📈 Monthly recommendations — $(date +%Y-%m)"
-          git push
+          git push --force
