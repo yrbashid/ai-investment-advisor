@@ -606,7 +606,10 @@ function parseRecap(report) {
 
 function parseConfidence(report) {
   if (!report) return 'N/A';
-  const m = report.match(/confidence.*?:\s*\*{0,2}(Low|Medium|High|Medium-High|Medium-Low)\*{0,2}/i);
+  // Match "Confidence: Medium" or "### **MEDIUM**" after a confidence heading
+  const m = report.match(/confidence.*?(?::|level)\s*\n*\s*(?:#{0,4}\s*)?\*{0,2}(Low|Medium-High|Medium-Low|Medium|High)\*{0,2}/i)
+    || report.match(/\*{0,2}(Medium-High|Medium-Low|Medium|High|Low)\*{0,2}\s*\n+\s*\*{0,2}Rationale/i)
+    || report.match(/confidence.*?\*{0,2}(Medium-High|Medium-Low|Medium|High|Low)\*{0,2}/i);
   return m ? m[1] : 'N/A';
 }
 
