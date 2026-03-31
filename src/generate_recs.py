@@ -91,7 +91,7 @@ def fetch_current_snapshot() -> str:
 
 
 def generate_recommendations(weekly_summaries: str, current_data: str) -> str:
-    """Call Claude (Sonnet) to generate monthly investment recommendations."""
+    """Call Claude to generate monthly investment recommendations."""
     if not ANTHROPIC_API_KEY:
         print("ERROR: ANTHROPIC_API_KEY not set")
         sys.exit(1)
@@ -108,18 +108,26 @@ def generate_recommendations(weekly_summaries: str, current_data: str) -> str:
 
     print(f"\nCalling Claude ({MODEL_MONTHLY}) for monthly recommendations...")
 
-    message = client.messages.create(
-        model=MODEL_MONTHLY,
-        max_tokens=MAX_TOKENS_MONTHLY,
-        messages=[{"role": "user", "content": prompt}],
-    )
+    import time
+    for attempt in range(5):
+        try:
+            message = client.messages.create(
+                model=MODEL_MONTHLY,
+                max_tokens=MAX_TOKENS_MONTHLY,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            report = message.content[0].text
+            tokens_in = message.usage.input_tokens
+            tokens_out = message.usage.output_tokens
+            print(f"  Tokens used: {tokens_in} in / {tokens_out} out")
+            return report
+        except anthropic._exceptions.OverloadedError:
+            wait = 30 * (attempt + 1)
+            print(f"  ⚠ API overloaded, retrying in {wait}s (attempt {attempt + 1}/5)...")
+            time.sleep(wait)
 
-    report = message.content[0].text
-    tokens_in = message.usage.input_tokens
-    tokens_out = message.usage.output_tokens
-    print(f"  Tokens used: {tokens_in} in / {tokens_out} out")
-
-    return report
+    print("ERROR: API overloaded after 5 retries")
+    sys.exit(1)
 
 
 def save_monthly_report(report: str, weekly_summaries: str) -> str:

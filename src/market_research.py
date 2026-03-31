@@ -108,18 +108,26 @@ def generate_weekly_summary(market_data_str: str) -> str:
 
     print(f"\nCalling Claude ({MODEL_WEEKLY}) for weekly summary...")
 
-    message = client.messages.create(
-        model=MODEL_WEEKLY,
-        max_tokens=MAX_TOKENS_WEEKLY,
-        messages=[{"role": "user", "content": prompt}],
-    )
+    import time
+    for attempt in range(5):
+        try:
+            message = client.messages.create(
+                model=MODEL_WEEKLY,
+                max_tokens=MAX_TOKENS_WEEKLY,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            summary = message.content[0].text
+            tokens_in = message.usage.input_tokens
+            tokens_out = message.usage.output_tokens
+            print(f"  Tokens used: {tokens_in} in / {tokens_out} out")
+            return summary
+        except anthropic._exceptions.OverloadedError:
+            wait = 30 * (attempt + 1)
+            print(f"  ⚠ API overloaded, retrying in {wait}s (attempt {attempt + 1}/5)...")
+            time.sleep(wait)
 
-    summary = message.content[0].text
-    tokens_in = message.usage.input_tokens
-    tokens_out = message.usage.output_tokens
-    print(f"  Tokens used: {tokens_in} in / {tokens_out} out")
-
-    return summary
+    print("ERROR: API overloaded after 5 retries")
+    sys.exit(1)
 
 
 def save_weekly_data(raw_data: dict, summary: str) -> str:
