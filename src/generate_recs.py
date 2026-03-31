@@ -121,7 +121,7 @@ def generate_recommendations(weekly_summaries: str, current_data: str) -> str:
             tokens_out = message.usage.output_tokens
             print(f"  Tokens used: {tokens_in} in / {tokens_out} out")
             return report
-        except anthropic._exceptions.OverloadedError:
+        except (anthropic._exceptions.OverloadedError, anthropic.InternalServerError, anthropic.APIError):
             wait = 30 * (attempt + 1)
             print(f"  ⚠ API overloaded, retrying in {wait}s (attempt {attempt + 1}/5)...")
             time.sleep(wait)

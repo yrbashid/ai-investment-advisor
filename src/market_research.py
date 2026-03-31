@@ -121,7 +121,7 @@ def generate_weekly_summary(market_data_str: str) -> str:
             tokens_out = message.usage.output_tokens
             print(f"  Tokens used: {tokens_in} in / {tokens_out} out")
             return summary
-        except anthropic._exceptions.OverloadedError:
+        except (anthropic._exceptions.OverloadedError, anthropic.InternalServerError, anthropic.APIError):
             wait = 30 * (attempt + 1)
             print(f"  ⚠ API overloaded, retrying in {wait}s (attempt {attempt + 1}/5)...")
             time.sleep(wait)
