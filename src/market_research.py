@@ -121,12 +121,18 @@ def generate_weekly_summary(market_data_str: str) -> str:
             tokens_out = message.usage.output_tokens
             print(f"  Tokens used: {tokens_in} in / {tokens_out} out")
             return summary
-        except (anthropic._exceptions.OverloadedError, anthropic.InternalServerError, anthropic.APIError):
+        except anthropic.APIStatusError as e:
+            if e.status_code < 500 and e.status_code != 429:
+                raise
             wait = 30 * (attempt + 1)
-            print(f"  ⚠ API overloaded, retrying in {wait}s (attempt {attempt + 1}/5)...")
+            print(f"  ⚠ API {e.status_code}, retrying in {wait}s (attempt {attempt + 1}/5)...")
+            time.sleep(wait)
+        except anthropic.APIConnectionError:
+            wait = 30 * (attempt + 1)
+            print(f"  ⚠ Connection error, retrying in {wait}s (attempt {attempt + 1}/5)...")
             time.sleep(wait)
 
-    print("ERROR: API overloaded after 5 retries")
+    print("ERROR: API still failing after 5 retries")
     sys.exit(1)
 
 

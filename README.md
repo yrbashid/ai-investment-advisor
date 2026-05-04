@@ -43,26 +43,27 @@ An automated market research and investment recommendation pipeline that uses Cl
 
 ## Cost Estimate 💰
 
+Currently configured to use **Claude Opus 4.7** for both weekly and monthly runs — the smartest option, which matters for financial reasoning.
+
 | Service | Usage | Monthly Cost |
 |---------|-------|-------------|
-| **Claude API (Haiku 4.5)** | ~4 weekly summaries + 1 monthly analysis ≈ 50K input / 15K output tokens | **~$0.13** |
-| **Claude API (Sonnet 4.6)** | 1 monthly deep analysis ≈ 30K input / 5K output tokens | **~$0.17** |
-| **GitHub Actions** | ~5 runs/month × 2-5 min each | **Free** (2,000 min/mo on free tier) |
+| **Claude API (Opus 4.7) — weekly** | 4 runs × ~5K in / 1.5K out tokens | **~$0.75** |
+| **Claude API (Opus 4.7) — monthly** | 1 run × ~10K in / 3K out tokens | **~$0.40** |
+| **GitHub Actions** | 5 runs/month × 2-5 min each | **Free** (2,000 min/mo) |
 | **yfinance** | Market data pulls | **Free** |
-| **Gmail SMTP** | ~5 emails/month | **Free** |
-| **Total** | | **~$0.30/month** |
+| **Gmail SMTP** | 1 email/month | **Free** |
+| **Total** | | **~$1.15/month** |
 
-> **Bottom line:** This app costs roughly 30 cents a month to run. Even if you scale up to daily research or use Sonnet for everything, you'd stay well under $5/month.
+> **Bottom line:** Roughly $1/month with Opus 4.7. To cut cost further, switch `MODEL_WEEKLY` in `src/config.py` to `claude-haiku-4-5-20251001` (~$0.20/mo total) — the monthly Opus run is where reasoning quality matters most.
 
-### Upgrading to More Powerful Analysis
+### Cost by Configuration
 
 | Scenario | Estimated Monthly Cost |
 |----------|----------------------|
-| All Haiku (cheapest) | ~$0.10 |
-| Haiku weekly + Sonnet monthly (recommended) | ~$0.30 |
-| All Sonnet | ~$1.00 |
-| Daily research + Sonnet everything | ~$3-5 |
-| Adding web search tool calls | +$0.50-2.00 |
+| All Haiku 4.5 | ~$0.10 |
+| Haiku weekly + Opus monthly | ~$0.50 |
+| All Opus 4.7 (current default) | ~$1.15 |
+| Daily research + Opus everywhere | ~$5-8 |
 
 ## Quick Start
 
