@@ -72,9 +72,9 @@ for category_tickers in WATCHLIST.values():
 ALL_TICKERS = list(set(ALL_TICKERS))  # deduplicate
 
 # ── Model Configuration ─────────────────────────────────────────────
-# Haiku for routine summaries (cheap), Sonnet for deep analysis
-MODEL_WEEKLY = "claude-opus-4-6"
-MODEL_MONTHLY = "claude-opus-4-6"
+# Opus 4.7 for both: best reasoning quality, manageable cost at this volume
+MODEL_WEEKLY = "claude-opus-4-7"
+MODEL_MONTHLY = "claude-opus-4-7"
 MAX_TOKENS_WEEKLY = 2048
 MAX_TOKENS_MONTHLY = 4096
 

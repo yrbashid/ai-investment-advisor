@@ -95,21 +95,72 @@ def email_subject(month_year: str) -> str:
     return f"📊 AI Investment Advisor — {month_year} Recommendations"
 
 
-def email_body_wrapper(report: str) -> str:
-    """Wrap the markdown report in an email-friendly format."""
-    return f"""Hi,
+_INLINE_STYLES = {
+    "<h1>": '<h1 style="font-size:20px;font-weight:700;color:#000;margin:28px 0 12px;border-bottom:1px solid #eee;padding-bottom:8px;">',
+    "<h2>": '<h2 style="font-size:17px;font-weight:700;color:#000;margin:24px 0 10px;">',
+    "<h3>": '<h3 style="font-size:14px;font-weight:600;color:#000;margin:20px 0 8px;">',
+    "<h4>": '<h4 style="font-size:13px;font-weight:600;color:#333;margin:16px 0 6px;">',
+    "<p>": '<p style="margin:0 0 12px;">',
+    "<table>": '<table style="border-collapse:collapse;width:100%;margin:14px 0;font-size:13px;">',
+    "<thead>": '<thead style="background:#f5f5f7;">',
+    "<th>": '<th style="text-align:left;padding:10px 12px;border-bottom:2px solid #ddd;font-weight:600;">',
+    "<td>": '<td style="padding:10px 12px;border-bottom:1px solid #eee;vertical-align:top;">',
+    "<ul>": '<ul style="margin:8px 0 12px;padding-left:22px;">',
+    "<ol>": '<ol style="margin:8px 0 12px;padding-left:22px;">',
+    "<li>": '<li style="margin-bottom:6px;">',
+    "<hr />": '<hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />',
+    "<strong>": '<strong style="font-weight:600;color:#000;">',
+    "<em>": '<em style="font-style:italic;color:#444;">',
+    "<code>": '<code style="background:#f5f5f7;padding:2px 5px;border-radius:3px;font-family:Menlo,Consolas,monospace;font-size:12px;">',
+    "<blockquote>": '<blockquote style="border-left:3px solid #ddd;margin:14px 0;padding:6px 14px;color:#555;">',
+}
 
-Your monthly AI-generated investment research report is ready.
 
-{'=' * 60}
+def _inline_style(html: str) -> str:
+    """Add inline styles to rendered markdown HTML for email clients."""
+    for tag, replacement in _INLINE_STYLES.items():
+        html = html.replace(tag, replacement)
+    return html
 
-{report}
 
-{'=' * 60}
+def email_body_html(report_md: str, month_year: str) -> str:
+    """Render the monthly report as a clean HTML email."""
+    import markdown
+    body = _inline_style(markdown.markdown(report_md, extensions=["tables", "fenced_code"]))
 
-⚠️ REMINDER: This is AI-generated research for educational purposes only.
-It is NOT financial advice. Always do your own due diligence.
+    return f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1d1d1f;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f7;padding:24px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#fff;border-radius:12px;overflow:hidden;max-width:600px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+        <tr><td style="padding:28px 28px 20px;border-bottom:1px solid #eee;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#888;font-weight:500;">AI Investment Advisor</div>
+          <div style="margin:8px 0 0;font-size:22px;font-weight:700;color:#000;line-height:1.3;">{month_year} Recommendations</div>
+        </td></tr>
+        <tr><td style="padding:8px 28px 24px;font-size:14px;line-height:1.65;color:#1d1d1f;">{body}</td></tr>
+        <tr><td style="padding:18px 28px;background:#fff5f5;border-top:1px solid #ffe0e0;">
+          <div style="font-size:11px;color:#a83232;line-height:1.55;">
+            <strong style="font-weight:600;">⚠ Disclaimer:</strong> AI-generated research for educational purposes only.
+            NOT financial advice. Past performance does not guarantee future results. Always do your own due diligence.
+          </div>
+        </td></tr>
+        <tr><td style="padding:14px 28px;background:#fafafa;text-align:center;font-size:10px;color:#999;letter-spacing:0.3px;">
+          Powered by Claude + yfinance + GitHub Actions
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>"""
 
-— Your AI Investment Advisor
-(Powered by Claude + yfinance + GitHub Actions)
-"""
+
+def email_body_text(report_md: str, month_year: str) -> str:
+    """Plain-text fallback for email clients that don't render HTML."""
+    return (
+        f"AI Investment Advisor — {month_year} Recommendations\n"
+        f"{'=' * 60}\n\n"
+        f"{report_md}\n\n"
+        f"{'=' * 60}\n"
+        "⚠ Disclaimer: AI-generated research for educational purposes only.\n"
+        "NOT financial advice. Always do your own due diligence.\n"
+    )

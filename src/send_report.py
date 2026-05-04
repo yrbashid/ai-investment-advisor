@@ -17,7 +17,7 @@ from config import (
     RECIPIENT_EMAIL,
     MONTHLY_DIR,
 )
-from prompts import email_subject, email_body_wrapper
+from prompts import email_subject, email_body_html, email_body_text
 
 
 def get_latest_report() -> tuple[str, str]:
@@ -34,7 +34,24 @@ def get_latest_report() -> tuple[str, str]:
     with open(latest) as f:
         report_content = f.read()
 
-    # Extract month-year for the subject line
+    # The saved markdown has a "# AI Investment Advisor — YYYY-MM" header and
+    # a "*Generated: ...*" line prepended; strip them so the email's own header
+    # doesn't repeat them.
+    lines = report_content.split("\n")
+    stripped = []
+    skip_until_content = True
+    for line in lines:
+        if skip_until_content:
+            if line.startswith("# AI Investment Advisor"):
+                continue
+            if line.startswith("*Generated:"):
+                continue
+            if not line.strip():
+                continue
+            skip_until_content = False
+        stripped.append(line)
+    report_content = "\n".join(stripped)
+
     month_str = latest.stem.replace("recommendations_", "")
     try:
         month_date = datetime.strptime(month_str, "%Y-%m")
@@ -57,9 +74,10 @@ def send_email(report: str, month_year: str):
     msg["From"] = GMAIL_ADDRESS
     msg["To"] = RECIPIENT_EMAIL
 
-    # Plain text version
-    body = email_body_wrapper(report)
-    msg.attach(MIMEText(body, "plain"))
+    # Order matters: clients prefer the LAST acceptable part. Plain text first,
+    # HTML second so HTML-capable clients render the styled version.
+    msg.attach(MIMEText(email_body_text(report, month_year), "plain", "utf-8"))
+    msg.attach(MIMEText(email_body_html(report, month_year), "html", "utf-8"))
 
     print(f"Sending to {RECIPIENT_EMAIL}...")
 
