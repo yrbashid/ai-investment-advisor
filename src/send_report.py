@@ -62,29 +62,54 @@ def get_latest_report() -> tuple[str, str]:
     return report_content, month_year
 
 
+def parse_recipients(raw: str) -> list[str]:
+    """Split RECIPIENT_EMAIL on commas/semicolons/whitespace and validate."""
+    import re
+    candidates = [e.strip() for e in re.split(r"[,;\s]+", raw) if e.strip()]
+    valid = [e for e in candidates if "@" in e and "." in e.split("@")[-1]]
+    invalid = set(candidates) - set(valid)
+    if invalid:
+        print(f"  ⚠ Skipping invalid addresses: {sorted(invalid)}")
+    return valid
+
+
 def send_email(report: str, month_year: str):
-    """Send the report via Gmail SMTP."""
+    """Send the report via Gmail SMTP. Multiple recipients get BCC'd."""
     if not all([GMAIL_ADDRESS, GMAIL_APP_PASSWORD, RECIPIENT_EMAIL]):
         print("ERROR: Email credentials not fully configured.")
         print("  Set GMAIL_ADDRESS, GMAIL_APP_PASSWORD, and RECIPIENT_EMAIL")
         sys.exit(1)
 
+    recipients = parse_recipients(RECIPIENT_EMAIL)
+    if not recipients:
+        print("ERROR: RECIPIENT_EMAIL contained no valid addresses")
+        sys.exit(1)
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = email_subject(month_year)
     msg["From"] = GMAIL_ADDRESS
-    msg["To"] = RECIPIENT_EMAIL
+    # For >1 recipient, To: is set to the sender so individual subscribers
+    # don't see each other's addresses. The actual delivery happens via the
+    # to_addrs argument to sendmail — we don't add a Bcc header (which would
+    # leak the list to anyone who views the raw message).
+    msg["To"] = recipients[0] if len(recipients) == 1 else GMAIL_ADDRESS
 
     # Order matters: clients prefer the LAST acceptable part. Plain text first,
     # HTML second so HTML-capable clients render the styled version.
     msg.attach(MIMEText(email_body_text(report, month_year), "plain", "utf-8"))
     msg.attach(MIMEText(email_body_html(report, month_year), "html", "utf-8"))
 
-    print(f"Sending to {RECIPIENT_EMAIL}...")
+    if len(recipients) == 1:
+        print(f"Sending to {recipients[0]}...")
+    else:
+        print(f"Sending to {len(recipients)} recipients (BCC):")
+        for r in recipients:
+            print(f"  • {r}")
 
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(GMAIL_ADDRESS, GMAIL_APP_PASSWORD)
-            server.sendmail(GMAIL_ADDRESS, RECIPIENT_EMAIL, msg.as_string())
+            server.sendmail(GMAIL_ADDRESS, recipients, msg.as_string())
         print("✅ Email sent successfully!")
     except smtplib.SMTPAuthenticationError:
         print("ERROR: Gmail authentication failed.")
