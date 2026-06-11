@@ -1,16 +1,19 @@
 """
 Monthly Recommendation Generator
-Reads all weekly research from the past month, pulls fresh data,
-and generates a comprehensive investment recommendation report.
+
+Reads the past month's weekly research, computes a fresh factor scorecard, and
+asks Claude to produce a criteria-driven recommendation. The model answers via
+a forced tool-call, so the result comes back as validated structured data
+(no markdown scraping). We store the structured object, a rendered markdown
+report, and a backward-compatible JSON payload.
 """
 
 import json
 import sys
+import time
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import anthropic
-import yfinance as yf
 
 from config import (
     ANTHROPIC_API_KEY,
@@ -24,12 +27,17 @@ from config import (
     WEEKLY_DIR,
     MONTHLY_DIR,
 )
-from prompts import monthly_recommendation_prompt
+from factors import compute_factors, format_factor_scorecard
+from prompts import (
+    monthly_recommendation_prompt,
+    render_report_markdown,
+    RECOMMENDATION_TOOL,
+)
 
 
 def load_weekly_summaries() -> str:
-    """Load all weekly research summaries from the past ~30 days."""
-    cutoff = datetime.now() - timedelta(days=35)  # slight buffer
+    """Load all weekly research summaries from the past ~35 days."""
+    cutoff = datetime.now() - timedelta(days=35)
     summaries = []
 
     weekly_files = sorted(WEEKLY_DIR.glob("research_*.json"))
@@ -39,88 +47,63 @@ def load_weekly_summaries() -> str:
         try:
             with open(filepath) as f:
                 data = json.load(f)
-
             file_date = datetime.strptime(data["date"], "%Y-%m-%d")
             if file_date < cutoff:
                 continue
-
             summaries.append(f"### Week of {data['date']}\n{data['summary']}")
             print(f"  ✓ Loaded {data['date']}")
-
         except Exception as e:
             print(f"  ✗ Error loading {filepath}: {e}")
             continue
 
     if not summaries:
-        print("  ⚠ No recent weekly summaries found — will proceed with current data only")
+        print("  ⚠ No recent weekly summaries found — proceeding with current factors only")
         return "No weekly research summaries available for this month."
 
     return "\n\n---\n\n".join(summaries)
 
 
-def fetch_current_snapshot() -> str:
-    """Get a fresh market snapshot for the recommendation prompt."""
-    lines = []
-    for category, tickers in WATCHLIST.items():
-        lines.append(f"\n## {category.replace('_', ' ').title()}")
-
-        for ticker_symbol in tickers:
-            try:
-                ticker = yf.Ticker(ticker_symbol)
-                hist = ticker.history(period="1mo")
-                if hist.empty:
-                    continue
-
-                latest = hist.iloc[-1]
-                month_ago = hist.iloc[0]
-                month_change = ((latest["Close"] - month_ago["Close"]) / month_ago["Close"]) * 100
-
-                info = ticker.info or {}
-                line = (
-                    f"{ticker_symbol}: ${latest['Close']:.2f} "
-                    f"({month_change:+.2f}% this month) | "
-                    f"52w range: ${info.get('fiftyTwoWeekLow', 'N/A')}-${info.get('fiftyTwoWeekHigh', 'N/A')}"
-                )
-                if info.get("trailingPE"):
-                    line += f" | P/E: {info['trailingPE']:.1f}"
-                lines.append(line)
-            except Exception:
-                continue
-
-    return "\n".join(lines)
+def validate_recommendations(recs: dict, budget: int) -> None:
+    """Log (don't fail) if the model's allocation violates the budget rule."""
+    allocations = recs.get("allocations", [])
+    total = sum(int(a.get("amount", 0)) for a in allocations)
+    if total != budget:
+        print(f"  ⚠ Allocations sum to ${total}, expected ${budget} (off by ${total - budget})")
+    if not (3 <= len(allocations) <= 6):
+        print(f"  ⚠ {len(allocations)} positions recommended (rubric asks for 3-6)")
 
 
-def generate_recommendations(weekly_summaries: str, current_data: str) -> str:
-    """Call Claude to generate monthly investment recommendations."""
+def generate_recommendations(weekly_summaries: str, scorecard: str) -> dict:
+    """Call Claude with a forced tool-call; return the structured recommendation."""
     if not ANTHROPIC_API_KEY:
         print("ERROR: ANTHROPIC_API_KEY not set")
         sys.exit(1)
 
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
     prompt = monthly_recommendation_prompt(
         weekly_summaries=weekly_summaries,
-        current_data=current_data,
+        scorecard=scorecard,
         budget=MONTHLY_BUDGET,
         risk_tolerance=RISK_TOLERANCE,
         investment_style=INVESTMENT_STYLE,
     )
 
     print(f"\nCalling Claude ({MODEL_MONTHLY}) for monthly recommendations...")
-
-    import time
     for attempt in range(5):
         try:
             message = client.messages.create(
                 model=MODEL_MONTHLY,
                 max_tokens=MAX_TOKENS_MONTHLY,
+                tools=[RECOMMENDATION_TOOL],
+                tool_choice={"type": "tool", "name": "submit_recommendations"},
                 messages=[{"role": "user", "content": prompt}],
             )
-            report = message.content[0].text
-            tokens_in = message.usage.input_tokens
-            tokens_out = message.usage.output_tokens
-            print(f"  Tokens used: {tokens_in} in / {tokens_out} out")
-            return report
+            print(f"  Tokens used: {message.usage.input_tokens} in / {message.usage.output_tokens} out")
+            for block in message.content:
+                if block.type == "tool_use" and block.name == "submit_recommendations":
+                    return block.input
+            print("ERROR: model did not return a submit_recommendations tool call")
+            sys.exit(1)
         except anthropic.APIStatusError as e:
             if e.status_code < 500 and e.status_code != 429:
                 raise
@@ -136,23 +119,22 @@ def generate_recommendations(weekly_summaries: str, current_data: str) -> str:
     sys.exit(1)
 
 
-def save_monthly_report(report: str, weekly_summaries: str) -> str:
-    """Save the monthly report as both markdown and JSON."""
+def save_monthly_report(recs: dict, report_md: str) -> str:
+    """Save markdown (for email) + JSON (structured recs for the dashboard)."""
     month_str = datetime.now().strftime("%Y-%m")
 
-    # Save readable markdown
     md_path = MONTHLY_DIR / f"recommendations_{month_str}.md"
     with open(md_path, "w") as f:
         f.write(f"# AI Investment Advisor — {month_str}\n\n")
         f.write(f"*Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}*\n\n")
-        f.write(report)
+        f.write(report_md)
     print(f"  Saved markdown: {md_path}")
 
-    # Save structured JSON for programmatic access
     json_path = MONTHLY_DIR / f"recommendations_{month_str}.json"
     payload = {
         "month": month_str,
-        "report": report,
+        "recommendations": recs,   # structured object — dashboard reads this directly
+        "report": report_md,       # rendered markdown — email + backward-compat parser
         "config": {
             "budget": MONTHLY_BUDGET,
             "risk_tolerance": RISK_TOLERANCE,
@@ -176,25 +158,31 @@ def main():
     print(f"Budget: ${MONTHLY_BUDGET}/mo | Risk: {RISK_TOLERANCE} | Style: {INVESTMENT_STYLE}")
     print("=" * 60)
 
-    # Step 1: Load weekly research
+    # Step 1: Load the month's weekly research
     print("\n📂 Loading weekly research summaries...")
     weekly_summaries = load_weekly_summaries()
 
-    # Step 2: Get fresh market data
-    print("\n📊 Fetching current market snapshot...")
-    current_data = fetch_current_snapshot()
+    # Step 2: Compute a fresh factor scorecard
+    print("\n📊 Computing current factor scorecard...")
+    factor_data = compute_factors(ALL_TICKERS)
+    if not factor_data:
+        print("ERROR: No market data retrieved. Exiting.")
+        sys.exit(1)
+    scorecard = format_factor_scorecard(factor_data, WATCHLIST)
 
-    # Step 3: Generate recommendations
-    report = generate_recommendations(weekly_summaries, current_data)
+    # Step 3: Generate structured recommendations
+    recs = generate_recommendations(weekly_summaries, scorecard)
+    validate_recommendations(recs, MONTHLY_BUDGET)
 
-    # Step 4: Save
+    # Step 4: Render markdown and save
     print("\n💾 Saving monthly report...")
-    filepath = save_monthly_report(report, weekly_summaries)
+    report_md = render_report_markdown(recs, MONTHLY_BUDGET)
+    filepath = save_monthly_report(recs, report_md)
 
     print("\n" + "=" * 60)
     print("RECOMMENDATION PREVIEW")
     print("=" * 60)
-    print(report[:800] + "..." if len(report) > 800 else report)
+    print(report_md[:800] + "..." if len(report_md) > 800 else report_md)
     print(f"\n✅ Monthly recommendations saved to {filepath}")
 
     return filepath

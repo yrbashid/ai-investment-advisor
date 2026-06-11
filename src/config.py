@@ -72,11 +72,11 @@ for category_tickers in WATCHLIST.values():
 ALL_TICKERS = list(set(ALL_TICKERS))  # deduplicate
 
 # ── Model Configuration ─────────────────────────────────────────────
-# Opus 4.7 for both: best reasoning quality, manageable cost at this volume
-MODEL_WEEKLY = "claude-opus-4-7"
-MODEL_MONTHLY = "claude-opus-4-7"
+# Opus 4.8 for both: best reasoning quality, manageable cost at this volume
+MODEL_WEEKLY = "claude-opus-4-8"
+MODEL_MONTHLY = "claude-opus-4-8"
 MAX_TOKENS_WEEKLY = 2048
-MAX_TOKENS_MONTHLY = 4096
+MAX_TOKENS_MONTHLY = 8192  # generous headroom so structured tool-call JSON never truncates
 
 # ── File Paths ──────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).parent.parent

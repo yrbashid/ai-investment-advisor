@@ -4,90 +4,209 @@ Edit these to change the AI's analysis style, focus areas, and output format.
 """
 
 
-def weekly_research_prompt(market_data: str, week_date: str) -> str:
-    """Prompt for weekly market research summary."""
-    return f"""You are a financial research analyst preparing a weekly market briefing.
+def weekly_research_prompt(scorecard: str, week_date: str) -> str:
+    """Prompt for the weekly market briefing, built around the factor scorecard."""
+    return f"""You are a quantitative research analyst preparing a weekly market briefing.
 
 Today's date: {week_date}
 
-Below is this week's market data for a watchlist of stocks and ETFs available on Robinhood.
-The data includes recent price action, volume, and key metrics.
+Below is a FACTOR SCORECARD for a Robinhood-available watchlist. Each asset has been
+scored by Python across five factor composites — Value, Momentum, Quality, Growth, and
+Low-Vol — expressed as PERCENTILE RANKS within this universe (0-100, higher = stronger
+on that factor). Selected raw metrics (12-1 momentum, RSI, volatility, forward P/E,
+distance from 52-week high) are included for context.
 
-<market_data>
-{market_data}
-</market_data>
+<factor_scorecard>
+{scorecard}
+</factor_scorecard>
 
-Please provide a concise weekly research summary covering:
+Write a concise weekly briefing (under 500 words) covering:
 
-1. **Market Overview** — How did the broad market (SPY, QQQ) perform this week? Any notable trends?
-2. **Sector Performance** — Which sectors outperformed or underperformed? Why might that be?
-3. **Notable Movers** — Any individual stocks with significant price changes or volume spikes?
-4. **Key Metrics** — Highlight any concerning or encouraging signals (P/E ratios, momentum, etc.)
-5. **Themes to Watch** — What trends or events should we monitor going into next week?
+1. **Market Regime** — What do the broad-market names (SPY, QQQ, VTI) and the overall
+   Low-Vol / Momentum readings imply about risk appetite this week — risk-on or risk-off?
+2. **Factor Leadership** — Which factor is being rewarded right now (e.g. Momentum vs.
+   Value)? Which sectors or categories rank highest on it?
+3. **Notable Movers** — Names with extreme readings: very strong/weak momentum, deeply
+   oversold (RSI < 30) or overbought (RSI > 70) signals, or unusual factor combinations
+   (e.g. high Quality paired with high Value).
+4. **Crosscurrents & Risks** — Divergences worth watching (e.g. equities strong but
+   Low-Vol weak, or crypto diverging from stocks).
+5. **Themes to Watch** — What to monitor going into next week.
 
-Keep the summary under 500 words. Be factual and data-driven.
-Do NOT make specific buy/sell recommendations — save that for the monthly report.
+Be factual and cite the percentile data. Do NOT make specific buy/sell recommendations —
+that is the monthly report's job.
 """
 
 
 def monthly_recommendation_prompt(
     weekly_summaries: str,
-    current_data: str,
+    scorecard: str,
     budget: int,
     risk_tolerance: str,
     investment_style: str,
 ) -> str:
-    """Prompt for monthly investment recommendation report."""
-    return f"""You are a financial research analyst preparing a monthly investment recommendation report.
+    """Prompt for the monthly recommendation. The model MUST answer via tool-call."""
+    return f"""You are a quantitative portfolio analyst building this month's recommendation
+for a long-term investor. You MUST call the `submit_recommendations` tool with your final
+answer. Do not write prose outside the tool call.
 
-The investor has the following profile:
-- Monthly investment budget: ${budget}
+INVESTOR PROFILE
+- Monthly budget: ${budget} (new capital to deploy this month)
 - Risk tolerance: {risk_tolerance}
 - Investment style: {investment_style}
-- Brokerage: Robinhood (so only assets available there)
-- This is for LONG-TERM investing, not day trading
+- Brokerage: Robinhood (only assets available there)
+- Horizon: LONG-TERM buy-and-hold with dollar-cost averaging — NOT trading
 
-Here are the weekly research summaries from the past month:
+INPUTS
+
+Factor scorecard (Python-computed percentile ranks across the universe — Value,
+Momentum, Quality, Growth, Low-Vol; higher = stronger on that factor):
+
+<factor_scorecard>
+{scorecard}
+</factor_scorecard>
+
+Weekly research notes accumulated this month:
 
 <weekly_research>
 {weekly_summaries}
 </weekly_research>
 
-Here is the current market snapshot:
+SELECTION RUBRIC (follow strictly)
+1. Recommend 3-6 positions. Amounts are whole dollars and MUST sum to exactly ${budget}.
+2. No single position above 40% of the budget; none below 5%.
+3. Include at least one Core broad-market holding (e.g. VOO / VTI / SPY) at >= 25% of the
+   budget, unless the regime strongly argues otherwise — if you deviate, explain why.
+4. Total crypto exposure <= 20% of the budget for a moderate profile (scale with risk
+   tolerance: less for conservative, more for aggressive).
+5. For a {investment_style} style, weight selection toward the factors that serve it
+   (growth -> Momentum / Growth / Quality; value -> Value / Quality; income -> dividend
+   plus Quality / Low-Vol). Use the OTHER factors as guardrails:
+   - Avoid initiating a position that sits in the bottom decile for Value (i.e. very
+     expensive) unless justified by exceptional Growth and Quality ranks.
+   - Be cautious adding names with RSI > 80 (overbought); call it out if you do.
+6. Each pick's `factor_basis` MUST cite the specific percentile ranks that justify it
+   (e.g. "Quality 88th, Value 71st, Momentum 64th").
+7. Assign each pick exactly one category: Core, Growth, Tactical, Alpha, Hedge, or Crypto.
+8. Set conviction (High / Medium / Low) honestly, based on how strongly the factor ranks
+   and the weekly notes agree.
 
-<current_data>
-{current_data}
-</current_data>
+Also provide: a 3-4 sentence market recap, a 2-3 name watchlist with concrete buy
+triggers, 3-5 key portfolio risks, and an overall confidence level with rationale.
 
-Please generate a monthly investment recommendation report with:
-
-1. **Monthly Market Recap** (3-4 sentences)
-   - What were the key themes this month?
-
-2. **Recommended Allocation** for ${budget}
-   - Provide specific ticker symbols and dollar amounts
-   - Aim for 3-6 positions (don't over-diversify a small portfolio)
-   - Include the reasoning for each pick
-   - Example format: "$300 → VOO (S&P 500 index — core holding for broad exposure)"
-
-3. **Watchlist** (2-3 tickers)
-   - Stocks/ETFs to monitor but not buy yet, and what trigger would make them a buy
-
-4. **Risk Assessment**
-   - What could go wrong with these recommendations?
-   - What would cause you to change the allocation?
-
-5. **Confidence Level**
-   - Rate your overall confidence in these recommendations: Low / Medium / High
-   - Brief explanation of why
-
-IMPORTANT DISCLAIMERS TO INCLUDE:
-- This is AI-generated research, NOT financial advice
-- The investor should do their own due diligence
-- Past performance does not guarantee future results
-
-Format the report in clean markdown.
+This is AI-generated research, NOT financial advice. Be disciplined and data-driven; do
+not chase the month's biggest winners on momentum alone.
 """
+
+
+# ── Structured output schema (Claude tool-use) ───────────────────────
+# Forcing the model to answer through this tool eliminates brittle markdown
+# parsing: the recommendation comes back as validated structured data.
+RECOMMENDATION_TOOL = {
+    "name": "submit_recommendations",
+    "description": "Submit the finalized monthly investment recommendation.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "market_recap": {
+                "type": "string",
+                "description": "3-4 sentence recap of the month's key themes.",
+            },
+            "allocations": {
+                "type": "array",
+                "description": "3-6 recommended positions; amounts must sum to the budget.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "ticker": {"type": "string"},
+                        "amount": {"type": "integer", "description": "Whole-dollar amount."},
+                        "category": {
+                            "type": "string",
+                            "enum": ["Core", "Growth", "Tactical", "Alpha", "Hedge", "Crypto"],
+                        },
+                        "conviction": {"type": "string", "enum": ["High", "Medium", "Low"]},
+                        "factor_basis": {
+                            "type": "string",
+                            "description": "Specific factor percentiles justifying the pick.",
+                        },
+                        "thesis": {"type": "string", "description": "1-3 sentence rationale."},
+                    },
+                    "required": ["ticker", "amount", "category", "conviction", "factor_basis", "thesis"],
+                },
+            },
+            "watchlist": {
+                "type": "array",
+                "description": "2-3 names to monitor but not buy yet.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "ticker": {"type": "string"},
+                        "trigger": {"type": "string", "description": "What would make it a buy."},
+                    },
+                    "required": ["ticker", "trigger"],
+                },
+            },
+            "risks": {
+                "type": "array",
+                "description": "3-5 key risks to the recommended allocation.",
+                "items": {"type": "string"},
+            },
+            "confidence": {"type": "string", "enum": ["Low", "Medium", "High"]},
+            "confidence_rationale": {"type": "string"},
+        },
+        "required": [
+            "market_recap", "allocations", "watchlist",
+            "risks", "confidence", "confidence_rationale",
+        ],
+    },
+}
+
+
+def render_report_markdown(recs: dict, budget: int) -> str:
+    """Render the structured recommendation object into clean markdown."""
+    allocations = recs.get("allocations", [])
+    total = sum(int(a.get("amount", 0)) for a in allocations)
+
+    lines = ["## Monthly Market Recap", "", recs.get("market_recap", "").strip(), ""]
+
+    lines.append(f"## Recommended Allocation — ${budget}")
+    lines.append("")
+    lines.append("| Amount | Ticker | Category | Conviction | Factor Basis | Thesis |")
+    lines.append("|--------|--------|----------|------------|--------------|--------|")
+    for a in allocations:
+        lines.append(
+            f"| **${a.get('amount', 0)}** | **{a.get('ticker', '')}** | "
+            f"{a.get('category', '')} | {a.get('conviction', '')} | "
+            f"{a.get('factor_basis', '')} | {a.get('thesis', '')} |"
+        )
+    lines.append("")
+    lines.append(f"**Total: ${total} across {len(allocations)} positions**")
+    lines.append("")
+
+    watchlist = recs.get("watchlist", [])
+    if watchlist:
+        lines += ["## Watchlist", "", "| Ticker | Buy Trigger |", "|--------|-------------|"]
+        for w in watchlist:
+            lines.append(f"| **{w.get('ticker', '')}** | {w.get('trigger', '')} |")
+        lines.append("")
+
+    risks = recs.get("risks", [])
+    if risks:
+        lines += ["## Risk Assessment", ""]
+        lines += [f"- {r}" for r in risks]
+        lines.append("")
+
+    lines += [
+        "## Confidence Level",
+        "",
+        f"**{recs.get('confidence', 'N/A')}** — {recs.get('confidence_rationale', '')}",
+        "",
+        "---",
+        "",
+        "*This is AI-generated research, NOT financial advice. Always do your own due "
+        "diligence. Past performance does not guarantee future results.*",
+    ]
+    return "\n".join(lines)
 
 
 def email_subject(month_year: str) -> str:
