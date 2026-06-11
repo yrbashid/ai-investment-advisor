@@ -1,82 +1,43 @@
 # AI Investment Advisor — 2026-06
 
-*Generated: 2026-06-01 19:21*
+*Generated: 2026-06-11 18:53*
 
-# Monthly Investment Recommendation Report
-**Report Date:** End of May 2026
-**Investor Profile:** Moderate Risk | Growth Style | $1000/month | Robinhood | Long-Term Horizon
+## Monthly Market Recap
 
----
+May's tech-led melt-up (SNOW +48%, AMD, AVGO surging) gave way to a sharp risk-off rotation in early June, with QQQ -5% and high-multiple growth names dropping double digits as the 2026 Iran war and Strait of Hormuz disruption drove May CPI to 4.2%. The macro backdrop is a stagflation tilt: 10Y near year-highs at 4.47%, VIX rising to ~19.8, and a safe-haven dollar bid (DXY +1.93 MoM). Energy is the standout factor leader (XLE Momentum 91 / Value 80 / Low-Vol 87), while defensives (XLP, XLU, XLV, JNJ) caught a flight-to-quality bid. Crypto collapsed broadly (BTC -38%, alts -60-80%) and sits deeply oversold near 52-week lows.
 
-## 1. Monthly Market Recap
+## Recommended Allocation — $1000
 
-May 2026 was defined by a **dramatic tech-led melt-up**, with QQQ surging +10.34% and XLK posting an extraordinary +20.99% monthly gain, driven by semiconductors (AMD +41.82%, NVDA +12.87%) and software earnings (SNOW +101%, CRM +14.74%). The rally was **narrow and growth-concentrated** — defensive sectors (Utilities -7.09%, Staples -2.64%), Energy (-2.73%), and dividend stalwarts (PEP -10%, T -5.88%) all lagged or declined. **Bonds were flat-to-soft** while **crypto sold off sharply** (BTC -8.76%, ETH -13.23%), an unusual divergence from equity risk-on. With SPY and QQQ both pressed against 52-week highs and XLK P/E at 42.9, valuations are stretched and the easy money has likely been made.
+| Amount | Ticker | Category | Conviction | Factor Basis | Thesis |
+|--------|--------|----------|------------|--------------|--------|
+| **$300** | **VOO** | Core | High | Value 61st, Momentum 66th, Low-Vol 67th — balanced broad-market exposure, only -3% from 52w high. | Core S&P 500 anchor for a long-term DCA plan. Balanced factor profile and resilience near highs make it the foundation despite a choppy, rotation-heavy tape. |
+| **$200** | **XLE** | Tactical | High | Momentum 91st, Value 80th, Low-Vol 87th — a rare triple-strong rank in the current regime. | Energy is the clear factor leader and a direct hedge to the Iran/Hormuz inflation shock driving CPI. Low correlation to mega-cap tech adds genuine diversification while the supply-disruption theme persists. |
+| **$180** | **NVDA** | Growth | Medium | Quality 100th, Growth 96th, Momentum 80th, fwPE 15.9 (cheap for its growth), -14% from 52w high. | Best-in-class quality and growth at a surprisingly reasonable forward P/E after the recent derating. The June selloff offers a more attractive DCA entry into the dominant AI compute franchise for a growth investor. |
+| **$170** | **JNJ** | Tactical | Medium | Low-Vol 93rd, Momentum 87th, Quality 60th — defensive strength leading the flight-to-quality. | Healthcare defensive that is both rallying (Momentum 87) and stable (Low-Vol 93) amid rising VIX and stagflation risk. Provides ballast and income with low correlation to the tech/energy sleeves. |
+| **$150** | **GOOGL** | Growth | Medium | Momentum 96th, Growth 72nd, Quality 76th, Value 28th, fwPE 24.5 — strong momentum at a reasonable multiple. | Top-momentum mega-cap with solid quality and growth at a far more reasonable valuation than the frothy momentum names (PLTR, SNOW). Recent relative weakness improves the long-term entry; complements NVDA with distinct platform exposure. |
 
----
+**Total: $1000 across 5 positions**
 
-## 2. Recommended Allocation for $1000
+## Watchlist
 
-> **Strategic context:** Markets are near all-time highs with frothy tech valuations. Rather than chase the momentum, I'm recommending a **core-and-satellite** approach that maintains growth tilt while dollar-cost-averaging into broad diversifiers and adding a contrarian value position.
+| Ticker | Buy Trigger |
+|--------|-------------|
+| **IWM** | Buy if small-cap breadth holds above 52w highs and the 10Y yield breaks back below ~4.3%, confirming durable broadening; cheap at P/E ~19.6 with Value 85 / Momentum 89. |
+| **BTC-USD** | Add a small (<=10%) Crypto sleeve once RSI recovers above 45 and price reclaims a higher weekly high, signaling the oversold (-38%, RSI 32) downtrend has stabilized. |
+| **AVGO** | Re-enter if it stabilizes after the -16% week and Momentum/Quality ranks hold, confirming the AI-capex semiconductor thesis is intact rather than derating further. |
 
-| Amount | Ticker | Rationale |
-|---|---|---|
-| **$350** | **VOO** (S&P 500 ETF) | Core long-term holding. Broad U.S. large-cap exposure at P/E 28.6. DCA into this regardless of price level — over decades, this is the workhorse. |
-| **$200** | **QQQ** (Nasdaq-100 ETF) | Growth tilt for the moderate-growth investor. Captures mega-cap tech leadership without single-stock risk. P/E 36.3 is rich, but DCA mitigates timing risk. |
-| **$150** | **IWM** (Russell 2000 ETF) | Contrarian diversifier. Small caps at P/E 19.9 are the cheapest broad index. Two of the last four weeks showed small-cap leadership emerging — could be early-stage rotation. |
-| **$150** | **MSFT** (Microsoft) | Highest-quality mega-cap growth. P/E 27.6 is reasonable vs. peers, AI tailwinds intact, enterprise software momentum confirmed (+11.95% this month, +7.57% in week 5). Lower beta than NVDA/AMD. |
-| **$100** | **GOOGL** (Alphabet) | Relative value play. Down -1.99% this month and underperforming peers, despite a strong fundamental position and reasonable P/E 28.8. XLC (P/E 17.1) screens cheap. |
-| **$50** | **SCHD or KO** (defensive cash flow) | Small defensive sleeve. KO at P/E 24.8 (+0.22% this month) — capital preservation hedge if the tech rally cracks. *(Note: SCHD not listed in snapshot; substitute KO if preferred for single-stock simplicity.)* |
+## Risk Assessment
 
-**Total: $1000** | **Allocation: ~70% broad ETFs, ~25% individual growth, ~5% defensive**
+- Stagflation escalation: a sustained Iran/Hormuz oil spike above $100 could re-accelerate inflation, push the 10Y higher, and pressure growth multiples (NVDA, GOOGL) hardest.
+- Energy reversal: XLE is a momentum/inflation trade — a de-escalation or crude reset (as seen in late May, XLE -5%) would quickly unwind the tactical sleeve.
+- Tech derating continuation: the early-June risk-off rotation could extend, hitting the ~33% combined NVDA/GOOGL growth weighting.
+- FOMC under new Chair Warsh (June 16-17): a hawkish hold or hawkish guidance amid 4.2% CPI would pressure equities broadly and rate-sensitive names.
+- Concentration/correlation: VOO, NVDA, and GOOGL all carry meaningful large-cap tech beta, so a mega-cap drawdown would hit multiple sleeves at once despite the energy/healthcare offsets.
 
----
+## Confidence Level
 
-## 3. Watchlist (Monitor, Don't Buy Yet)
-
-1. **NVDA — $224.00**
-   *Trigger to buy:* A pullback to the $190–200 range OR a clean breakout above $236 (52-week high) on strong volume. The repeated heavy-volume distribution flagged in weekly research (166M, 168M, 191M shares) is a yellow flag — wait for resolution.
-
-2. **AMZN — $263.74**
-   *Trigger to buy:* Has underperformed mega-cap tech peers (-1.68% this month) despite strong fundamentals. A break above $278 (52w high) with sector confirmation, OR a continued pullback toward $240, would offer an attractive entry.
-
-3. **XLE / XOM — Energy sector**
-   *Trigger to buy:* Energy has been beaten down all month (-2.73%). Watch for stabilization in crude prices and 2+ consecutive weeks of XLE outperformance. A contrarian rotation back into energy could offer a high-conviction setup.
+**Medium** — The factor scorecard, macro regime, and weekly notes align well on the energy leadership and defensive flight-to-quality themes (high conviction on XLE/JNJ), and the Core anchor is regime-appropriate given rising VIX. Confidence is tempered to Medium because the tape is rotation-heavy and unstable — growth names that led in May reversed hard in June — and stagflation/FOMC/oil outcomes create wide two-sided risk around the NVDA/GOOGL growth sleeve. No crypto was added given the deeply broken trend, keeping the portfolio disciplined rather than chasing oversold bounces.
 
 ---
 
-## 4. Risk Assessment
-
-**What could go wrong:**
-- **Tech valuation compression:** QQQ at P/E 36.3 and XLK at 42.9 are historically stretched. A rate-hike scare, earnings disappointment, or AI capex slowdown could trigger a 10–15% tech correction.
-- **Index concentration risk:** VOO and QQQ overlap heavily in mega-cap tech, meaning my "diversified" allocation is more correlated than it appears.
-- **Small-cap value trap:** IWM is "cheap" for a reason — if yields rise or growth slows, small caps could decline further.
-- **Crypto contagion:** BTC -8.76% and ETH -13.23% diverging from equities is concerning. Crypto often leads risk sentiment shifts.
-- **Defensive sectors signaling caution:** Utilities -7%, Staples -3% during a tech rally is unusual; could reflect crowded positioning rather than fundamental optimism.
-
-**What would cause me to change the allocation:**
-- A **>5% SPY drawdown** in a single week → increase QQQ/MSFT allocation (buy the dip).
-- **Sustained small-cap leadership for 3+ weeks** → increase IWM to $200+.
-- **Yield curve steepening or TLT breakdown below $82** → rotate $100 from QQQ into XLE or XLF.
-- **NVDA confirms accumulation (up week on high volume)** → add NVDA to the core portfolio next month.
-
----
-
-## 5. Confidence Level
-
-### **Medium**
-
-**Why Medium and not High:**
-- ✅ The allocation is **structurally sound** for a long-term moderate-growth investor: diversified, low-cost, growth-tilted, with DCA discipline.
-- ⚠️ **Timing is unfavorable** — buying at all-time highs after a +10% tech month historically produces below-average forward 3-month returns.
-- ⚠️ **Internal market signals are mixed:** narrow leadership, crypto divergence, defensives selling off without obvious cause, and heavy NVDA distribution volume all suggest fragility beneath the surface.
-- ✅ Over a **5+ year horizon**, entry timing matters far less than consistent DCA into quality assets — which is exactly this investor's plan.
-
----
-
-## ⚠️ Important Disclaimers
-
-- **This is AI-generated research and analysis, NOT financial advice.** It should not be the sole basis for any investment decision.
-- **Do your own due diligence.** Verify all data, read company filings, and consider consulting a licensed financial advisor before investing.
-- **Past performance does not guarantee future results.** Historical patterns described here may not repeat.
-- Market data is point-in-time and may not reflect current prices when you act on it.
-- The author/system holds no positions and has no fiduciary relationship to the reader.
+*This is AI-generated research, NOT financial advice. Always do your own due diligence. Past performance does not guarantee future results.*
