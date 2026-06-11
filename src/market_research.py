@@ -27,6 +27,7 @@ from config import (
 from factors import compute_factors, format_factor_scorecard
 from macro import compute_macro_context, format_macro_summary
 from prompts import weekly_research_prompt
+from tracking import load_ledger, update_performance
 
 
 def build_raw_data(factor_data: dict) -> dict:
@@ -49,9 +50,26 @@ def build_raw_data(factor_data: dict) -> dict:
 
 
 def _extract_text(message) -> str:
-    """Join all text blocks (a web-search response interleaves search results)."""
+    """
+    Return the final briefing text.
+
+    With web search, the model interleaves pre-search narration ("let me check
+    the news...") between search calls, then writes the briefing AFTER the last
+    search. We keep only the text emitted after the last non-text (tool) block
+    so that narration doesn't leak into the saved summary. With no search, every
+    block is text and we keep all of it.
+    """
+    blocks = message.content
+    last_tool = -1
+    for i, b in enumerate(blocks):
+        if getattr(b, "type", None) != "text":
+            last_tool = i
+    trailing = [b.text for b in blocks[last_tool + 1:] if getattr(b, "type", None) == "text"]
+    if trailing:
+        return "".join(trailing).strip()
+    # Fallback (shouldn't happen): join any text blocks present.
     return "".join(
-        b.text for b in message.content if getattr(b, "type", None) == "text"
+        b.text for b in blocks if getattr(b, "type", None) == "text"
     ).strip()
 
 
@@ -158,6 +176,11 @@ def main():
 
     # Step 5: Save everything
     filepath = save_weekly_data(factor_data, scorecard, summary, macro)
+
+    # Step 6: Refresh the outcome-tracking performance with this week's prices
+    print("\n📈 Refreshing track record...")
+    prices = {t: d["price"] for t, d in factor_data.items()}
+    update_performance(prices, load_ledger())
 
     print("\n" + "=" * 60)
     print("WEEKLY SUMMARY PREVIEW")

@@ -141,3 +141,20 @@ class TestWebSearchFallback:
         t2 = mock.Mock(); t2.type = "text"; t2.text = "Part two."
         msg = mock.Mock(content=[search_block, t1, t2])
         assert MR._extract_text(msg) == "Part one. Part two."
+
+    def test_extract_text_drops_pre_search_narration(self):
+        """Narration emitted before/between searches must not leak into the summary."""
+        import market_research as MR
+        narration = mock.Mock(); narration.type = "text"; narration.text = "Let me check the news..."
+        search = mock.Mock(); search.type = "web_search_tool_result"
+        briefing = mock.Mock(); briefing.type = "text"; briefing.text = "# Weekly Briefing\nReal content."
+        msg = mock.Mock(content=[narration, search, briefing])
+        out = MR._extract_text(msg)
+        assert out == "# Weekly Briefing\nReal content."
+        assert "Let me check" not in out
+
+    def test_extract_text_no_search_keeps_all(self):
+        """With web search off, the whole (single) text block is the briefing."""
+        import market_research as MR
+        only = mock.Mock(); only.type = "text"; only.text = "# Briefing\nNo search today."
+        assert MR._extract_text(mock.Mock(content=[only])) == "# Briefing\nNo search today."

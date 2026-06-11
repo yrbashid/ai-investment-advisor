@@ -8,8 +8,9 @@ An automated market research and investment recommendation pipeline that uses Cl
 2. **Macro Regime** — Tracks Treasury yields, the 10Y-3M yield curve, VIX, and the dollar index to frame the rate/volatility backdrop (risk-on vs. risk-off).
 3. **Weekly Research** — Claude writes a factor-aware briefing from the scorecard + macro context, using **live web search** to fold in the week's real news (Fed, data prints, earnings).
 4. **Monthly Recommendations** — Claude applies an explicit selection rubric (position-sizing caps, sector limits, valuation guardrails, **correlation-aware diversification**) and returns a **structured recommendation via tool-call** — no brittle text parsing. Each pick cites the factor percentiles that justify it.
-5. **Email Delivery** — Sends a formatted HTML report via Gmail (supports multiple BCC'd subscribers).
-6. **Fully Automated** — Runs on GitHub Actions (free tier) with no server to maintain.
+5. **Outcome Tracking** — Every pick is recorded with its entry price and scored against SPY over time. A **track record** on the dashboard shows whether the factor-driven picks actually beat just buying the index (alpha).
+6. **Email Delivery** — Sends a formatted HTML report via Gmail (supports multiple BCC'd subscribers).
+7. **Fully Automated** — Runs on GitHub Actions (free tier) with no server to maintain.
 
 ## Architecture
 
@@ -126,6 +127,7 @@ ai-investment-advisor/
 ├── src/
 │   ├── factors.py               # Factor engine: technicals, fundamentals, ranking, composites
 │   ├── macro.py                 # Macro regime (yields, VIX, dollar) + cross-asset correlations
+│   ├── tracking.py              # Outcome tracking: ledger + performance scoring vs SPY
 │   ├── market_research.py       # Weekly: scorecard + macro + web-search briefing
 │   ├── generate_recs.py         # Monthly: rubric-driven structured recommendations
 │   ├── send_report.py           # Emails the report (HTML, multi-recipient)
@@ -135,11 +137,13 @@ ai-investment-advisor/
 │   └── index.html               # GitHub Pages dashboard (reads data/ JSON)
 ├── data/                        # Auto-generated research data
 │   ├── weekly/
-│   └── monthly/
+│   ├── monthly/
+│   └── tracking/                # ledger.json (picks + entry prices) + performance.json
 ├── tests/
 │   ├── test_pipeline.py         # Config, prompts, structured output
 │   ├── test_factors.py          # Factor math (offline, synthetic data)
-│   └── test_macro.py            # Macro/correlation + web-search fallback
+│   ├── test_macro.py            # Macro/correlation + web-search fallback
+│   └── test_tracking.py         # Ledger recording + performance scoring
 ├── .env.example
 ├── .gitignore
 ├── requirements.txt
