@@ -72,11 +72,27 @@ for category_tickers in WATCHLIST.values():
 ALL_TICKERS = list(set(ALL_TICKERS))  # deduplicate
 
 # ── Model Configuration ─────────────────────────────────────────────
-# Opus 4.7 for both: best reasoning quality, manageable cost at this volume
-MODEL_WEEKLY = "claude-opus-4-7"
-MODEL_MONTHLY = "claude-opus-4-7"
+# Opus 4.8 for both: best reasoning quality, manageable cost at this volume
+MODEL_WEEKLY = "claude-opus-4-8"
+MODEL_MONTHLY = "claude-opus-4-8"
 MAX_TOKENS_WEEKLY = 2048
-MAX_TOKENS_MONTHLY = 4096
+MAX_TOKENS_MONTHLY = 8192  # generous headroom so structured tool-call JSON never truncates
+
+# ── Macro Regime Tickers ────────────────────────────────────────────
+# Yahoo symbols for the macro context layer (yields are quoted in percent).
+MACRO_TICKERS = {
+    "ten_year": "^TNX",      # 10-Year Treasury yield
+    "three_month": "^IRX",   # 13-week T-bill yield (short rate)
+    "vix": "^VIX",           # CBOE volatility index
+    "dollar": "DX-Y.NYB",    # US Dollar Index
+}
+
+# ── Web Search (Anthropic server-side tool) ─────────────────────────
+# Adds real recent-news awareness to the weekly briefing. Falls back
+# gracefully to no-search if the account doesn't have the tool enabled.
+ENABLE_WEB_SEARCH = True
+WEB_SEARCH_TOOL_TYPE = "web_search_20250305"  # bump if Anthropic ships a newer version
+WEB_SEARCH_MAX_USES = 5
 
 # ── File Paths ──────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).parent.parent

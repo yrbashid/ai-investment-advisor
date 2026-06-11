@@ -4,10 +4,12 @@ An automated market research and investment recommendation pipeline that uses Cl
 
 ## What It Does
 
-1. **Weekly Research** — Pulls market data via `yfinance`, fetches recent news via web search, and analyzes sector trends
-2. **Monthly Recommendations** — Synthesizes a month of research into actionable buy/hold/sell recommendations for assets available on Robinhood
-3. **Email Delivery** — Sends you a formatted report via Gmail so you never miss a recommendation
-4. **Fully Automated** — Runs on GitHub Actions (free tier) with no server to maintain
+1. **Factor Scoring** — Pulls 2 years of data via `yfinance` and computes technical + fundamental factors for every ticker (momentum, RSI, volatility, beta, valuation, margins, growth, analyst targets), then ranks them cross-sectionally into composite **Value / Momentum / Quality / Growth / Low-Vol** percentile scores. Python does the math; Claude reasons over a clean scorecard.
+2. **Macro Regime** — Tracks Treasury yields, the 10Y-3M yield curve, VIX, and the dollar index to frame the rate/volatility backdrop (risk-on vs. risk-off).
+3. **Weekly Research** — Claude writes a factor-aware briefing from the scorecard + macro context, using **live web search** to fold in the week's real news (Fed, data prints, earnings).
+4. **Monthly Recommendations** — Claude applies an explicit selection rubric (position-sizing caps, sector limits, valuation guardrails, **correlation-aware diversification**) and returns a **structured recommendation via tool-call** — no brittle text parsing. Each pick cites the factor percentiles that justify it.
+5. **Email Delivery** — Sends a formatted HTML report via Gmail (supports multiple BCC'd subscribers).
+6. **Fully Automated** — Runs on GitHub Actions (free tier) with no server to maintain.
 
 ## Architecture
 
@@ -43,18 +45,19 @@ An automated market research and investment recommendation pipeline that uses Cl
 
 ## Cost Estimate 💰
 
-Currently configured to use **Claude Opus 4.7** for both weekly and monthly runs — the smartest option, which matters for financial reasoning.
+Currently configured to use **Claude Opus 4.8** for both weekly and monthly runs — the smartest option, which matters for financial reasoning.
 
 | Service | Usage | Monthly Cost |
 |---------|-------|-------------|
-| **Claude API (Opus 4.7) — weekly** | 4 runs × ~5K in / 1.5K out tokens | **~$0.75** |
-| **Claude API (Opus 4.7) — monthly** | 1 run × ~10K in / 3K out tokens | **~$0.40** |
+| **Claude API (Opus 4.8) — weekly** | 4 runs × ~5K in / 1.5K out tokens | **~$0.75** |
+| **Claude API (Opus 4.8) — monthly** | 1 run × ~10K in / 3K out tokens | **~$0.40** |
+| **Web search** | ~4 weekly runs × up to 5 searches | **~$0.10** |
 | **GitHub Actions** | 5 runs/month × 2-5 min each | **Free** (2,000 min/mo) |
-| **yfinance** | Market data pulls | **Free** |
+| **yfinance** | Market + macro data pulls | **Free** |
 | **Gmail SMTP** | 1 email/month | **Free** |
-| **Total** | | **~$1.15/month** |
+| **Total** | | **~$1.25/month** |
 
-> **Bottom line:** Roughly $1/month with Opus 4.7. To cut cost further, switch `MODEL_WEEKLY` in `src/config.py` to `claude-haiku-4-5-20251001` (~$0.20/mo total) — the monthly Opus run is where reasoning quality matters most.
+> **Bottom line:** Roughly $1.25/month with Opus 4.8 + web search. To cut cost, set `ENABLE_WEB_SEARCH = False` or switch `MODEL_WEEKLY` in `src/config.py` to `claude-haiku-4-5-20251001` (~$0.25/mo total) — the monthly Opus run is where reasoning quality matters most.
 
 ### Cost by Configuration
 
@@ -62,7 +65,7 @@ Currently configured to use **Claude Opus 4.7** for both weekly and monthly runs
 |----------|----------------------|
 | All Haiku 4.5 | ~$0.10 |
 | Haiku weekly + Opus monthly | ~$0.50 |
-| All Opus 4.7 (current default) | ~$1.15 |
+| All Opus 4.8 (current default) | ~$1.15 |
 | Daily research + Opus everywhere | ~$5-8 |
 
 ## Quick Start
@@ -121,16 +124,22 @@ ai-investment-advisor/
 │   ├── weekly_research.yml      # Cron: every Sunday 8am ET
 │   └── monthly_recommendations.yml  # Cron: 1st of each month
 ├── src/
-│   ├── market_research.py       # Fetches & analyzes market data
-│   ├── generate_recs.py         # Produces investment recommendations
-│   ├── send_report.py           # Emails the report
+│   ├── factors.py               # Factor engine: technicals, fundamentals, ranking, composites
+│   ├── macro.py                 # Macro regime (yields, VIX, dollar) + cross-asset correlations
+│   ├── market_research.py       # Weekly: scorecard + macro + web-search briefing
+│   ├── generate_recs.py         # Monthly: rubric-driven structured recommendations
+│   ├── send_report.py           # Emails the report (HTML, multi-recipient)
 │   ├── config.py                # Central configuration
-│   └── prompts.py               # All LLM prompts (easy to tweak)
-├── data/                        # Auto-generated research data (gitignored)
+│   └── prompts.py               # Prompts, tool schema, markdown renderer
+├── docs/
+│   └── index.html               # GitHub Pages dashboard (reads data/ JSON)
+├── data/                        # Auto-generated research data
 │   ├── weekly/
 │   └── monthly/
 ├── tests/
-│   └── test_pipeline.py
+│   ├── test_pipeline.py         # Config, prompts, structured output
+│   ├── test_factors.py          # Factor math (offline, synthetic data)
+│   └── test_macro.py            # Macro/correlation + web-search fallback
 ├── .env.example
 ├── .gitignore
 ├── requirements.txt
