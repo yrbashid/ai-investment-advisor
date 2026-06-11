@@ -46,14 +46,23 @@ class TestPrompts:
     """Test that prompt templates render correctly."""
 
     def test_weekly_prompt_contains_data(self):
-        prompt = weekly_research_prompt("SPY: $500 (+1.5%)", "2026-03-12")
+        prompt = weekly_research_prompt("SPY: $500 (+1.5%)", "10Y: 4.2%", "2026-03-12")
         assert "SPY: $500" in prompt
+        assert "10Y: 4.2%" in prompt  # macro block embedded
         assert "2026-03-12" in prompt
+
+    def test_weekly_prompt_news_toggle(self):
+        with_news = weekly_research_prompt("sc", "macro", "2026-03-12", include_news=True)
+        without = weekly_research_prompt("sc", "macro", "2026-03-12", include_news=False)
+        assert "web search" in with_news.lower()
+        assert "web search" not in without.lower()
 
     def test_monthly_prompt_contains_config(self):
         prompt = monthly_recommendation_prompt(
             weekly_summaries="Week 1 summary",
             scorecard="SPY: $500",
+            macro_summary="10Y: 4.2%",
+            correlation_summary="AAPL <-> MSFT: 0.80",
             budget=1000,
             risk_tolerance="moderate",
             investment_style="growth",
@@ -63,6 +72,8 @@ class TestPrompts:
         assert "growth" in prompt
         assert "Robinhood" in prompt
         assert "submit_recommendations" in prompt  # must instruct the tool call
+        assert "10Y: 4.2%" in prompt                # macro block embedded
+        assert "AAPL <-> MSFT" in prompt            # correlation block embedded
 
     def test_email_subject_format(self):
         subject = email_subject("March 2026")

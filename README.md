@@ -5,10 +5,11 @@ An automated market research and investment recommendation pipeline that uses Cl
 ## What It Does
 
 1. **Factor Scoring** — Pulls 2 years of data via `yfinance` and computes technical + fundamental factors for every ticker (momentum, RSI, volatility, beta, valuation, margins, growth, analyst targets), then ranks them cross-sectionally into composite **Value / Momentum / Quality / Growth / Low-Vol** percentile scores. Python does the math; Claude reasons over a clean scorecard.
-2. **Weekly Research** — Claude writes a factor-aware market briefing from the scorecard (regime, factor leadership, notable movers).
-3. **Monthly Recommendations** — Claude applies an explicit selection rubric (position-sizing caps, sector limits, valuation guardrails) and returns a **structured recommendation via tool-call** — no brittle text parsing. Each pick cites the factor percentiles that justify it.
-4. **Email Delivery** — Sends a formatted HTML report via Gmail (supports multiple BCC'd subscribers).
-5. **Fully Automated** — Runs on GitHub Actions (free tier) with no server to maintain.
+2. **Macro Regime** — Tracks Treasury yields, the 10Y-3M yield curve, VIX, and the dollar index to frame the rate/volatility backdrop (risk-on vs. risk-off).
+3. **Weekly Research** — Claude writes a factor-aware briefing from the scorecard + macro context, using **live web search** to fold in the week's real news (Fed, data prints, earnings).
+4. **Monthly Recommendations** — Claude applies an explicit selection rubric (position-sizing caps, sector limits, valuation guardrails, **correlation-aware diversification**) and returns a **structured recommendation via tool-call** — no brittle text parsing. Each pick cites the factor percentiles that justify it.
+5. **Email Delivery** — Sends a formatted HTML report via Gmail (supports multiple BCC'd subscribers).
+6. **Fully Automated** — Runs on GitHub Actions (free tier) with no server to maintain.
 
 ## Architecture
 
@@ -50,12 +51,13 @@ Currently configured to use **Claude Opus 4.8** for both weekly and monthly runs
 |---------|-------|-------------|
 | **Claude API (Opus 4.8) — weekly** | 4 runs × ~5K in / 1.5K out tokens | **~$0.75** |
 | **Claude API (Opus 4.8) — monthly** | 1 run × ~10K in / 3K out tokens | **~$0.40** |
+| **Web search** | ~4 weekly runs × up to 5 searches | **~$0.10** |
 | **GitHub Actions** | 5 runs/month × 2-5 min each | **Free** (2,000 min/mo) |
-| **yfinance** | Market data pulls | **Free** |
+| **yfinance** | Market + macro data pulls | **Free** |
 | **Gmail SMTP** | 1 email/month | **Free** |
-| **Total** | | **~$1.15/month** |
+| **Total** | | **~$1.25/month** |
 
-> **Bottom line:** Roughly $1/month with Opus 4.8. To cut cost further, switch `MODEL_WEEKLY` in `src/config.py` to `claude-haiku-4-5-20251001` (~$0.20/mo total) — the monthly Opus run is where reasoning quality matters most.
+> **Bottom line:** Roughly $1.25/month with Opus 4.8 + web search. To cut cost, set `ENABLE_WEB_SEARCH = False` or switch `MODEL_WEEKLY` in `src/config.py` to `claude-haiku-4-5-20251001` (~$0.25/mo total) — the monthly Opus run is where reasoning quality matters most.
 
 ### Cost by Configuration
 
@@ -123,7 +125,8 @@ ai-investment-advisor/
 │   └── monthly_recommendations.yml  # Cron: 1st of each month
 ├── src/
 │   ├── factors.py               # Factor engine: technicals, fundamentals, ranking, composites
-│   ├── market_research.py       # Weekly: scorecard + factor-aware briefing
+│   ├── macro.py                 # Macro regime (yields, VIX, dollar) + cross-asset correlations
+│   ├── market_research.py       # Weekly: scorecard + macro + web-search briefing
 │   ├── generate_recs.py         # Monthly: rubric-driven structured recommendations
 │   ├── send_report.py           # Emails the report (HTML, multi-recipient)
 │   ├── config.py                # Central configuration
@@ -135,7 +138,8 @@ ai-investment-advisor/
 │   └── monthly/
 ├── tests/
 │   ├── test_pipeline.py         # Config, prompts, structured output
-│   └── test_factors.py          # Factor math (offline, synthetic data)
+│   ├── test_factors.py          # Factor math (offline, synthetic data)
+│   └── test_macro.py            # Macro/correlation + web-search fallback
 ├── .env.example
 ├── .gitignore
 ├── requirements.txt

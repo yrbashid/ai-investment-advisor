@@ -4,36 +4,51 @@ Edit these to change the AI's analysis style, focus areas, and output format.
 """
 
 
-def weekly_research_prompt(scorecard: str, week_date: str) -> str:
-    """Prompt for the weekly market briefing, built around the factor scorecard."""
+def weekly_research_prompt(
+    scorecard: str, macro_summary: str, week_date: str, include_news: bool = True
+) -> str:
+    """Prompt for the weekly market briefing: macro regime + factor scorecard (+ news)."""
+    news_instruction = (
+        "Before writing, use web search to check for major market-moving developments in "
+        "the past week — Fed / central-bank actions, key economic data (CPI, jobs), notable "
+        "earnings, and geopolitical events. Incorporate what you find and attribute it.\n\n"
+        if include_news
+        else ""
+    )
+    news_section = (
+        "2. **This Week's News** — The most important developments from your web search and "
+        "how markets reacted.\n"
+        if include_news
+        else ""
+    )
     return f"""You are a quantitative research analyst preparing a weekly market briefing.
 
 Today's date: {week_date}
 
-Below is a FACTOR SCORECARD for a Robinhood-available watchlist. Each asset has been
-scored by Python across five factor composites — Value, Momentum, Quality, Growth, and
-Low-Vol — expressed as PERCENTILE RANKS within this universe (0-100, higher = stronger
-on that factor). Selected raw metrics (12-1 momentum, RSI, volatility, forward P/E,
-distance from 52-week high) are included for context.
+You have a MACRO REGIME snapshot and a FACTOR SCORECARD. The scorecard scores every
+Robinhood-available asset across five composites — Value, Momentum, Quality, Growth,
+Low-Vol — as PERCENTILE RANKS within the universe (0-100, higher = stronger).
+
+<macro_regime>
+{macro_summary}
+</macro_regime>
 
 <factor_scorecard>
 {scorecard}
 </factor_scorecard>
 
-Write a concise weekly briefing (under 500 words) covering:
+{news_instruction}Write a concise weekly briefing (under 500 words) covering:
 
-1. **Market Regime** — What do the broad-market names (SPY, QQQ, VTI) and the overall
-   Low-Vol / Momentum readings imply about risk appetite this week — risk-on or risk-off?
-2. **Factor Leadership** — Which factor is being rewarded right now (e.g. Momentum vs.
+1. **Market Regime** — Combine the macro snapshot (yields, curve, VIX, dollar) with the
+   broad-market factor readings: risk-on or risk-off, and what is the rate / volatility
+   backdrop?
+{news_section}3. **Factor Leadership** — Which factor is being rewarded right now (e.g. Momentum vs.
    Value)? Which sectors or categories rank highest on it?
-3. **Notable Movers** — Names with extreme readings: very strong/weak momentum, deeply
-   oversold (RSI < 30) or overbought (RSI > 70) signals, or unusual factor combinations
-   (e.g. high Quality paired with high Value).
-4. **Crosscurrents & Risks** — Divergences worth watching (e.g. equities strong but
-   Low-Vol weak, or crypto diverging from stocks).
+4. **Notable Movers** — Names with extreme readings: very strong/weak momentum, deeply
+   oversold (RSI < 30) or overbought (RSI > 70) signals, or unusual factor combinations.
 5. **Themes to Watch** — What to monitor going into next week.
 
-Be factual and cite the percentile data. Do NOT make specific buy/sell recommendations —
+Cite the percentile and macro data. Do NOT make specific buy/sell recommendations —
 that is the monthly report's job.
 """
 
@@ -41,11 +56,20 @@ that is the monthly report's job.
 def monthly_recommendation_prompt(
     weekly_summaries: str,
     scorecard: str,
+    macro_summary: str,
+    correlation_summary: str,
     budget: int,
     risk_tolerance: str,
     investment_style: str,
 ) -> str:
     """Prompt for the monthly recommendation. The model MUST answer via tool-call."""
+    correlation_block = (
+        f"\nCross-asset correlations (use these to keep the portfolio genuinely "
+        f"diversified — do not stack highly-correlated names):\n\n<correlations>\n"
+        f"{correlation_summary}\n</correlations>\n"
+        if correlation_summary
+        else ""
+    )
     return f"""You are a quantitative portfolio analyst building this month's recommendation
 for a long-term investor. You MUST call the `submit_recommendations` tool with your final
 answer. Do not write prose outside the tool call.
@@ -59,13 +83,19 @@ INVESTOR PROFILE
 
 INPUTS
 
+Macro regime (the rate / volatility / dollar backdrop):
+
+<macro_regime>
+{macro_summary}
+</macro_regime>
+
 Factor scorecard (Python-computed percentile ranks across the universe — Value,
 Momentum, Quality, Growth, Low-Vol; higher = stronger on that factor):
 
 <factor_scorecard>
 {scorecard}
 </factor_scorecard>
-
+{correlation_block}
 Weekly research notes accumulated this month:
 
 <weekly_research>
@@ -85,11 +115,15 @@ SELECTION RUBRIC (follow strictly)
    - Avoid initiating a position that sits in the bottom decile for Value (i.e. very
      expensive) unless justified by exceptional Growth and Quality ranks.
    - Be cautious adding names with RSI > 80 (overbought); call it out if you do.
-6. Each pick's `factor_basis` MUST cite the specific percentile ranks that justify it
+6. Diversification: do not fill the portfolio with names that are highly correlated to one
+   another (see the correlation block). Favor picks that add a distinct return stream.
+7. Let the macro regime shape risk posture: e.g. an inverted curve or elevated VIX argues
+   for more Core / Low-Vol weight; a calm risk-on backdrop allows more Growth / Alpha.
+8. Each pick's `factor_basis` MUST cite the specific percentile ranks that justify it
    (e.g. "Quality 88th, Value 71st, Momentum 64th").
-7. Assign each pick exactly one category: Core, Growth, Tactical, Alpha, Hedge, or Crypto.
-8. Set conviction (High / Medium / Low) honestly, based on how strongly the factor ranks
-   and the weekly notes agree.
+9. Assign each pick exactly one category: Core, Growth, Tactical, Alpha, Hedge, or Crypto.
+10. Set conviction (High / Medium / Low) honestly, based on how strongly the factor ranks,
+    macro backdrop, and weekly notes agree.
 
 Also provide: a 3-4 sentence market recap, a 2-3 name watchlist with concrete buy
 triggers, 3-5 key portfolio risks, and an overall confidence level with rationale.

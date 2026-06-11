@@ -28,6 +28,12 @@ from config import (
     MONTHLY_DIR,
 )
 from factors import compute_factors, format_factor_scorecard
+from macro import (
+    compute_macro_context,
+    format_macro_summary,
+    compute_correlation_summary,
+    format_correlation_summary,
+)
 from prompts import (
     monthly_recommendation_prompt,
     render_report_markdown,
@@ -73,7 +79,9 @@ def validate_recommendations(recs: dict, budget: int) -> None:
         print(f"  ⚠ {len(allocations)} positions recommended (rubric asks for 3-6)")
 
 
-def generate_recommendations(weekly_summaries: str, scorecard: str) -> dict:
+def generate_recommendations(
+    weekly_summaries: str, scorecard: str, macro_summary: str, correlation_summary: str
+) -> dict:
     """Call Claude with a forced tool-call; return the structured recommendation."""
     if not ANTHROPIC_API_KEY:
         print("ERROR: ANTHROPIC_API_KEY not set")
@@ -83,6 +91,8 @@ def generate_recommendations(weekly_summaries: str, scorecard: str) -> dict:
     prompt = monthly_recommendation_prompt(
         weekly_summaries=weekly_summaries,
         scorecard=scorecard,
+        macro_summary=macro_summary,
+        correlation_summary=correlation_summary,
         budget=MONTHLY_BUDGET,
         risk_tolerance=RISK_TOLERANCE,
         investment_style=INVESTMENT_STYLE,
@@ -119,7 +129,7 @@ def generate_recommendations(weekly_summaries: str, scorecard: str) -> dict:
     sys.exit(1)
 
 
-def save_monthly_report(recs: dict, report_md: str) -> str:
+def save_monthly_report(recs: dict, report_md: str, macro: dict) -> str:
     """Save markdown (for email) + JSON (structured recs for the dashboard)."""
     month_str = datetime.now().strftime("%Y-%m")
 
@@ -135,6 +145,7 @@ def save_monthly_report(recs: dict, report_md: str) -> str:
         "month": month_str,
         "recommendations": recs,   # structured object — dashboard reads this directly
         "report": report_md,       # rendered markdown — email + backward-compat parser
+        "macro": macro,            # macro regime snapshot for the dashboard
         "config": {
             "budget": MONTHLY_BUDGET,
             "risk_tolerance": RISK_TOLERANCE,
@@ -170,14 +181,20 @@ def main():
         sys.exit(1)
     scorecard = format_factor_scorecard(factor_data, WATCHLIST)
 
-    # Step 3: Generate structured recommendations
-    recs = generate_recommendations(weekly_summaries, scorecard)
+    # Step 3: Macro regime + cross-asset correlations
+    print("\n🌐 Computing macro regime + correlations...")
+    macro = compute_macro_context()
+    macro_summary = format_macro_summary(macro)
+    correlation_summary = format_correlation_summary(compute_correlation_summary(ALL_TICKERS))
+
+    # Step 4: Generate structured recommendations
+    recs = generate_recommendations(weekly_summaries, scorecard, macro_summary, correlation_summary)
     validate_recommendations(recs, MONTHLY_BUDGET)
 
-    # Step 4: Render markdown and save
+    # Step 5: Render markdown and save
     print("\n💾 Saving monthly report...")
     report_md = render_report_markdown(recs, MONTHLY_BUDGET)
-    filepath = save_monthly_report(recs, report_md)
+    filepath = save_monthly_report(recs, report_md, macro)
 
     print("\n" + "=" * 60)
     print("RECOMMENDATION PREVIEW")

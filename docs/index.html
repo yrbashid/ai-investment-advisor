@@ -677,6 +677,7 @@ function render(data) {
   const monthLabel = monthly?.month || new Date().toISOString().slice(0, 7);
   const generatedAt = monthly?.generated_at ? new Date(monthly.generated_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : '';
   const totalAllocated = allocations.reduce((s, a) => s + a.amount, 0);
+  const macro = monthly?.macro || (weekly[0] && weekly[0].macro) || null;
 
   let currentTab = 'recs';
 
@@ -702,6 +703,8 @@ function render(data) {
       <h1>${formatMonth(monthLabel)} Report</h1>
       <div class="header-meta">${generatedAt ? `Generated ${generatedAt}` : ''} · Model: ${monthly?.config?.model || 'claude-opus-4-8'}</div>
     </div>
+
+    ${renderMacroStrip(macro)}
 
     <div class="tabs">
       <button class="tab active" data-tab="recs">Recommendations</button>
@@ -835,6 +838,46 @@ function renderResearchTab(weekly) {
       }).join('')}
     </div>
   `;
+}
+
+// ── Macro regime strip ───────────────────────────────────
+function renderMacroStrip(macro) {
+  if (!macro) return '';
+  const chips = [];
+  const arrow = (c) => c > 0 ? '▲' : (c < 0 ? '▼' : '→');
+  const col = (c, invert) => {
+    if (c === 0 || c == null) return 'var(--text-secondary)';
+    const up = invert ? c < 0 : c > 0;
+    return up ? 'var(--accent-green)' : 'var(--accent-red)';
+  };
+  const chip = (label, valueHtml) => `
+    <div style="flex:1;min-width:88px;padding:8px 10px;">
+      <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;">${label}</div>
+      <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#fff;">${valueHtml}</div>
+    </div>`;
+
+  if (macro.ten_year) {
+    // Rising yields are a headwind for growth equities → render red on the way up.
+    chips.push(chip('10Y Yield', `${macro.ten_year.value}% <span style="font-size:10px;color:${col(macro.ten_year.change, true)}">${arrow(macro.ten_year.change)}${Math.abs(macro.ten_year.change)}</span>`));
+  }
+  if (macro.yield_curve_10y_3m != null) {
+    const inv = macro.yield_curve_10y_3m < 0;
+    chips.push(chip('Curve 10Y-3M', `<span style="color:${inv ? 'var(--accent-red)' : '#fff'}">${macro.yield_curve_10y_3m > 0 ? '+' : ''}${macro.yield_curve_10y_3m}${inv ? ' ⚠' : ''}</span>`));
+  }
+  if (macro.vix) {
+    const lvl = macro.vix.value;
+    const vcol = lvl < 20 ? 'var(--accent-green)' : (lvl < 30 ? 'var(--accent-amber)' : 'var(--accent-red)');
+    chips.push(chip('VIX', `<span style="color:${vcol}">${lvl}</span> <span style="font-size:10px;color:${col(macro.vix.change, true)}">${arrow(macro.vix.change)}${Math.abs(macro.vix.change)}</span>`));
+  }
+  if (macro.dollar) {
+    chips.push(chip('DXY', `${macro.dollar.value} <span style="font-size:10px;color:var(--text-muted)">${arrow(macro.dollar.change)}${Math.abs(macro.dollar.change)}</span>`));
+  }
+  if (!chips.length) return '';
+  return `
+    <div class="card" style="margin-bottom:16px;padding:4px;display:flex;flex-wrap:wrap;align-items:center;">
+      <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);padding:0 10px;">Macro</div>
+      ${chips.join('')}
+    </div>`;
 }
 
 // ── Helpers ──────────────────────────────────────────────
