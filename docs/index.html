@@ -440,7 +440,10 @@ async function loadData() {
     if (weeklyData.length >= 5) break;
   }
 
-  return { monthly: monthlyData, weekly: weeklyData };
+  // Outcome-tracking performance (track record)
+  const performance = await fetchJSON(`${DATA_BASE}/tracking/performance.json`);
+
+  return { monthly: monthlyData, weekly: weeklyData, performance };
 }
 
 // ── Parsing ─────────────────────────────────────────────
@@ -628,6 +631,7 @@ function render(data) {
   const app = document.getElementById('app');
   const monthly = data.monthly;
   const weekly = data.weekly;
+  const performance = data.performance || null;
 
   if (!monthly && weekly.length === 0) {
     app.innerHTML = `
@@ -689,6 +693,8 @@ function render(data) {
       tabContent.innerHTML = renderRecsTab(allocations, watchlist, risks, recap, confidence, budget, totalAllocated);
     } else if (currentTab === 'research') {
       tabContent.innerHTML = renderResearchTab(weekly);
+    } else if (currentTab === 'track') {
+      tabContent.innerHTML = renderTrackRecordTab(performance);
     }
 
     // Trigger animations
@@ -709,6 +715,7 @@ function render(data) {
     <div class="tabs">
       <button class="tab active" data-tab="recs">Recommendations</button>
       <button class="tab" data-tab="research">Weekly Research</button>
+      <button class="tab" data-tab="track">Track Record</button>
     </div>
 
     <div id="tab-content"></div>
@@ -836,6 +843,70 @@ function renderResearchTab(weekly) {
             </div>` : ''}
           </div>`;
       }).join('')}
+    </div>
+  `;
+}
+
+function renderTrackRecordTab(performance) {
+  const empty = `
+    <div class="card" style="text-align:center;padding:40px 20px;">
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.7;">
+        📊 <strong>No track record yet.</strong><br>
+        Each monthly recommendation is recorded with its entry price, then scored
+        against SPY over time. Your first scored month appears after the next
+        monthly run.
+      </div>
+    </div>`;
+  if (!performance || !performance.positions || performance.positions.length === 0) return empty;
+
+  const o = performance.overall || {};
+  const byMonth = performance.by_month || [];
+  const positions = performance.positions || [];
+  const pct = (v) => v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
+  const colr = (v) => v == null ? 'var(--text-muted)' : (v >= 0 ? 'var(--accent-green)' : 'var(--accent-red)');
+  const alphaCls = (o.alpha != null && o.alpha >= 0) ? 'green' : '';
+
+  return `
+    <!-- Headline KPIs -->
+    <div class="kpi-grid">
+      ${kpiCard('Portfolio', pct(o.return_pct), `$${o.invested || 0} across ${o.positions || 0} picks`, (o.return_pct >= 0 ? 'green' : ''))}
+      ${kpiCard('vs SPY', pct(o.benchmark_pct), 'Same-date benchmark')}
+      ${kpiCard('Alpha', pct(o.alpha), o.alpha >= 0 ? 'Beating the market' : 'Trailing the market', alphaCls)}
+      ${kpiCard('Tracked', `${o.positions || 0}`, 'Total positions')}
+    </div>
+
+    <!-- Per-month rollup -->
+    ${byMonth.length > 0 ? `
+    <div class="card" style="margin-bottom:12px;padding:0;overflow:hidden;">
+      <div style="padding:16px 20px 4px;"><div class="card-label">By Month — Portfolio vs SPY</div></div>
+      ${byMonth.slice().reverse().map(m => `
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid var(--border);">
+          <span style="font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;min-width:74px;">${formatMonth(m.month)}</span>
+          <span style="font-size:11px;color:var(--text-dim);min-width:54px;">$${m.invested}</span>
+          <span style="font-size:13px;font-weight:600;color:${colr(m.return_pct)};min-width:60px;">${pct(m.return_pct)}</span>
+          <span style="font-size:11px;color:var(--text-muted);">vs SPY ${pct(m.benchmark_pct)}</span>
+          <span style="margin-left:auto;font-size:11px;font-weight:600;color:${colr(m.alpha)};">${m.alpha >= 0 ? '▲' : '▼'} ${pct(m.alpha)}</span>
+        </div>
+      `).join('')}
+    </div>` : ''}
+
+    <!-- Per-position detail -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:16px 20px 4px;"><div class="card-label">Positions</div></div>
+      ${positions.slice().sort((a, b) => (b.return_pct ?? -999) - (a.return_pct ?? -999)).map(p => `
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid var(--border);">
+          <span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;min-width:64px;">${p.ticker}</span>
+          <span style="font-size:10px;color:var(--text-dim);min-width:58px;">${formatMonth(p.month)}</span>
+          <span style="font-size:11px;color:var(--text-muted);min-width:96px;">$${p.entry_price} → ${p.current_price != null ? '$' + p.current_price : '—'}</span>
+          <span style="font-size:13px;font-weight:600;color:${colr(p.return_pct)};min-width:58px;">${pct(p.return_pct)}</span>
+          <span style="margin-left:auto;font-size:11px;font-weight:600;color:${colr(p.alpha)};">α ${pct(p.alpha)}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="font-size:10px;color:var(--text-dim);text-align:center;margin-top:12px;line-height:1.5;">
+      Returns are price-only (excl. dividends), measured from each pick's entry date.
+      "Alpha" = our return minus SPY bought on the same date.
     </div>
   `;
 }

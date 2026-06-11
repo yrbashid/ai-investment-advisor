@@ -39,6 +39,12 @@ from prompts import (
     render_report_markdown,
     RECOMMENDATION_TOOL,
 )
+from tracking import (
+    load_ledger,
+    save_ledger,
+    record_recommendations,
+    update_performance,
+)
 
 
 def load_weekly_summaries() -> str:
@@ -195,6 +201,15 @@ def main():
     print("\n💾 Saving monthly report...")
     report_md = render_report_markdown(recs, MONTHLY_BUDGET)
     filepath = save_monthly_report(recs, report_md, macro)
+
+    # Step 6: Record this month's picks (with entry prices) into the tracking ledger
+    print("\n📒 Recording recommendations into the tracking ledger...")
+    month_str = datetime.now().strftime("%Y-%m")
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    prices = {t: d["price"] for t, d in factor_data.items()}
+    ledger = record_recommendations(recs, prices, month_str, date_str, load_ledger())
+    save_ledger(ledger)
+    update_performance(prices, ledger)
 
     print("\n" + "=" * 60)
     print("RECOMMENDATION PREVIEW")
