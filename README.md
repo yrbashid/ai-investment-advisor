@@ -2,6 +2,8 @@
 
 An automated market research and investment recommendation pipeline that uses Claude (Anthropic's LLM) to analyze financial data and generate monthly investment recommendations for a $1,000/month Robinhood portfolio.
 
+> 📖 **New here?** Read [**How the AI Investment Advisor Works**](docs/METHODOLOGY.md) — a plain-English guide to what the system considers, how it decides, and what makes it more than "ask a chatbot for stock tips."
+
 ## What It Does
 
 1. **Factor Scoring** — Pulls 2 years of data via `yfinance` and computes technical + fundamental factors for every ticker (momentum, RSI, volatility, beta, valuation, margins, growth, analyst targets), then ranks them cross-sectionally into composite **Value / Momentum / Quality / Growth / Low-Vol** percentile scores. Python does the math; Claude reasons over a clean scorecard.
