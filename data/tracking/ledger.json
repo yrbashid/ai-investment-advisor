@@ -1,0 +1,47 @@
+[
+  {
+    "month": "2026-07",
+    "entry_date": "2026-07-01",
+    "ticker": "VOO",
+    "amount": 320,
+    "entry_price": 688.63,
+    "category": "Core",
+    "conviction": "High"
+  },
+  {
+    "month": "2026-07",
+    "entry_date": "2026-07-01",
+    "ticker": "QQQ",
+    "amount": 180,
+    "entry_price": 729.51,
+    "category": "Growth",
+    "conviction": "High"
+  },
+  {
+    "month": "2026-07",
+    "entry_date": "2026-07-01",
+    "ticker": "NVDA",
+    "amount": 160,
+    "entry_price": 197.17,
+    "category": "Alpha",
+    "conviction": "Medium"
+  },
+  {
+    "month": "2026-07",
+    "entry_date": "2026-07-01",
+    "ticker": "XLV",
+    "amount": 180,
+    "entry_price": 159.71,
+    "category": "Tactical",
+    "conviction": "Medium"
+  },
+  {
+    "month": "2026-07",
+    "entry_date": "2026-07-01",
+    "ticker": "GOOGL",
+    "amount": 160,
+    "entry_price": 359.07,
+    "category": "Growth",
+    "conviction": "Medium"
+  }
+]
