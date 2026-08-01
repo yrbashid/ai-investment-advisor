@@ -8,10 +8,10 @@
       "entry_price": 688.63,
       "category": "Core",
       "conviction": "High",
-      "current_price": 678.61,
-      "return_pct": -1.46,
-      "benchmark_pct": -1.02,
-      "alpha": -0.44
+      "current_price": 686.65,
+      "return_pct": -0.29,
+      "benchmark_pct": 0.17,
+      "alpha": -0.46
     },
     {
       "month": "2026-07",
@@ -21,10 +21,10 @@
       "entry_price": 729.51,
       "category": "Growth",
       "conviction": "High",
-      "current_price": 691.96,
-      "return_pct": -5.15,
-      "benchmark_pct": -1.02,
-      "alpha": -4.13
+      "current_price": 687.99,
+      "return_pct": -5.69,
+      "benchmark_pct": 0.17,
+      "alpha": -5.86
     },
     {
       "month": "2026-07",
@@ -34,10 +34,10 @@
       "entry_price": 197.17,
       "category": "Alpha",
       "conviction": "Medium",
-      "current_price": 208.76,
-      "return_pct": 5.88,
-      "benchmark_pct": -1.02,
-      "alpha": 6.9
+      "current_price": 200.75,
+      "return_pct": 1.82,
+      "benchmark_pct": 0.17,
+      "alpha": 1.65
     },
     {
       "month": "2026-07",
@@ -47,10 +47,10 @@
       "entry_price": 159.71,
       "category": "Tactical",
       "conviction": "Medium",
-      "current_price": 161.44,
-      "return_pct": 1.08,
-      "benchmark_pct": -1.02,
-      "alpha": 2.1
+      "current_price": 162.55,
+      "return_pct": 1.78,
+      "benchmark_pct": 0.17,
+      "alpha": 1.61
     },
     {
       "month": "2026-07",
@@ -60,10 +60,10 @@
       "entry_price": 359.07,
       "category": "Growth",
       "conviction": "Medium",
-      "current_price": 317.69,
-      "return_pct": -11.52,
-      "benchmark_pct": -1.02,
-      "alpha": -10.5
+      "current_price": 356.13,
+      "return_pct": -0.82,
+      "benchmark_pct": 0.17,
+      "alpha": -0.99
     }
   ],
   "by_month": [
@@ -72,16 +72,16 @@
       "entry_date": "2026-07-01",
       "invested": 1000,
       "positions": 5,
-      "return_pct": -2.1,
-      "benchmark_pct": -1.02,
-      "alpha": -1.08
+      "return_pct": -0.64,
+      "benchmark_pct": 0.17,
+      "alpha": -0.81
     }
   ],
   "overall": {
     "invested": 1000,
     "positions": 5,
-    "return_pct": -2.1,
-    "benchmark_pct": -1.02,
-    "alpha": -1.08
+    "return_pct": -0.64,
+    "benchmark_pct": 0.17,
+    "alpha": -0.81
   }
 }
