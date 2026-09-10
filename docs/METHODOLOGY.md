@@ -36,7 +36,7 @@ actually adds value.
 | **Context** | Prices only | Treasury yields, yield curve, VIX, the dollar, and cross-asset correlations |
 | **News** | None (despite claims) | Live web search each week |
 | **Accountability** | None | Every pick tracked vs SPY; a track record with alpha |
-| **Model** | — | Claude Opus 4.8 |
+| **Model** | — | Claude Opus 5 |
 
 The redesign was delivered in four pillars: **(1)** a factor engine, **(2)** a
 macro + correlation + news layer, **(3)** criteria-driven structured output, and
@@ -224,7 +224,7 @@ own research — with a track record you can hold it accountable to.
 month — both automated on GitHub Actions, with results committed back to the repo
 and rendered on the dashboard.
 
-**Model:** Claude Opus 4.8 for both the weekly briefing and the monthly decision.
+**Model:** Claude Opus 5 for both the weekly briefing and the monthly decision.
 
 *Generated as living documentation of the system's design. If the code changes,
 update this doc.*

@@ -48,19 +48,21 @@ An automated market research and investment recommendation pipeline that uses Cl
 
 ## Cost Estimate 💰
 
-Currently configured to use **Claude Opus 4.8** for both weekly and monthly runs — the smartest option, which matters for financial reasoning.
+Currently configured to use **Claude Opus 5** for both weekly and monthly runs — the smartest option, which matters for financial reasoning.
 
 | Service | Usage | Monthly Cost |
 |---------|-------|-------------|
-| **Claude API (Opus 4.8) — weekly** | 4 runs × ~5K in / 1.5K out tokens | **~$0.75** |
-| **Claude API (Opus 4.8) — monthly** | 1 run × ~10K in / 3K out tokens | **~$0.40** |
+| **Claude API (Opus 5) — weekly** | 4 runs × ~5K in / 1.5K out tokens | **~$0.75** |
+| **Claude API (Opus 5) — monthly** | 1 run × ~10K in / 3K out tokens | **~$0.40** |
 | **Web search** | ~4 weekly runs × up to 5 searches | **~$0.10** |
 | **GitHub Actions** | 5 runs/month × 2-5 min each | **Free** (2,000 min/mo) |
 | **yfinance** | Market + macro data pulls | **Free** |
 | **Gmail SMTP** | 1 email/month | **Free** |
 | **Total** | | **~$1.25/month** |
 
-> **Bottom line:** Roughly $1.25/month with Opus 4.8 + web search. To cut cost, set `ENABLE_WEB_SEARCH = False` or switch `MODEL_WEEKLY` in `src/config.py` to `claude-haiku-4-5-20251001` (~$0.25/mo total) — the monthly Opus run is where reasoning quality matters most.
+> **Bottom line:** Roughly $1–2/month. To cut cost, set `ENABLE_WEB_SEARCH = False` or switch `MODEL_WEEKLY` in `src/config.py` to `claude-haiku-4-5-20251001` — the monthly Opus run is where reasoning quality matters most.
+>
+> ⚠️ **Note:** The dollar figures above were calibrated against the previous Opus generation. The token volumes are accurate, but re-check the per-token rates on the [Anthropic pricing page](https://www.anthropic.com/pricing) for current Opus 5 costs.
 
 ### Cost by Configuration
 
@@ -68,7 +70,7 @@ Currently configured to use **Claude Opus 4.8** for both weekly and monthly runs
 |----------|----------------------|
 | All Haiku 4.5 | ~$0.10 |
 | Haiku weekly + Opus monthly | ~$0.50 |
-| All Opus 4.8 (current default) | ~$1.15 |
+| All Opus 5 (current default) | ~$1.15 |
 | Daily research + Opus everywhere | ~$5-8 |
 
 ## Quick Start
