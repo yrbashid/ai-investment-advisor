@@ -88,5 +88,50 @@
     "entry_price": 64.66,
     "category": "Tactical",
     "conviction": "Medium"
+  },
+  {
+    "month": "2026-10",
+    "entry_date": "2026-10-01",
+    "ticker": "VOO",
+    "amount": 350,
+    "entry_price": 702.67,
+    "category": "Core",
+    "conviction": "High"
+  },
+  {
+    "month": "2026-10",
+    "entry_date": "2026-10-01",
+    "ticker": "NVDA",
+    "amount": 200,
+    "entry_price": 231.63,
+    "category": "Growth",
+    "conviction": "High"
+  },
+  {
+    "month": "2026-10",
+    "entry_date": "2026-10-01",
+    "ticker": "XLE",
+    "amount": 150,
+    "entry_price": 62.6,
+    "category": "Tactical",
+    "conviction": "Medium"
+  },
+  {
+    "month": "2026-10",
+    "entry_date": "2026-10-01",
+    "ticker": "GOOGL",
+    "amount": 150,
+    "entry_price": 339.09,
+    "category": "Growth",
+    "conviction": "Medium"
+  },
+  {
+    "month": "2026-10",
+    "entry_date": "2026-10-01",
+    "ticker": "XLV",
+    "amount": 150,
+    "entry_price": 166.63,
+    "category": "Hedge",
+    "conviction": "Medium"
   }
 ]
