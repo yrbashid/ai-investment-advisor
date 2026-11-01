@@ -133,5 +133,50 @@
     "entry_price": 166.63,
     "category": "Hedge",
     "conviction": "Medium"
+  },
+  {
+    "month": "2026-11",
+    "entry_date": "2026-11-01",
+    "ticker": "VTI",
+    "amount": 320,
+    "entry_price": 371.57,
+    "category": "Core",
+    "conviction": "High"
+  },
+  {
+    "month": "2026-11",
+    "entry_date": "2026-11-01",
+    "ticker": "ABBV",
+    "amount": 220,
+    "entry_price": 294.89,
+    "category": "Quality",
+    "conviction": "High"
+  },
+  {
+    "month": "2026-11",
+    "entry_date": "2026-11-01",
+    "ticker": "XLV",
+    "amount": 170,
+    "entry_price": 184.87,
+    "category": "Growth",
+    "conviction": "Medium"
+  },
+  {
+    "month": "2026-11",
+    "entry_date": "2026-11-01",
+    "ticker": "XLE",
+    "amount": 160,
+    "entry_price": 70.02,
+    "category": "Tactical",
+    "conviction": "Medium"
+  },
+  {
+    "month": "2026-11",
+    "entry_date": "2026-11-01",
+    "ticker": "BTC-USD",
+    "amount": 130,
+    "entry_price": 77854.81,
+    "category": "Crypto",
+    "conviction": "Low"
   }
 ]
