@@ -8,10 +8,10 @@
       "entry_price": 688.63,
       "category": "Core",
       "conviction": "High",
-      "current_price": 694.81,
-      "return_pct": 0.9,
-      "benchmark_pct": 1.59,
-      "alpha": -0.69
+      "current_price": 675.99,
+      "return_pct": -1.84,
+      "benchmark_pct": -1.16,
+      "alpha": -0.68
     },
     {
       "month": "2026-07",
@@ -21,10 +21,10 @@
       "entry_price": 729.51,
       "category": "Growth",
       "conviction": "High",
-      "current_price": 690.49,
-      "return_pct": -5.35,
-      "benchmark_pct": 1.59,
-      "alpha": -6.94
+      "current_price": 656.1,
+      "return_pct": -10.06,
+      "benchmark_pct": -1.16,
+      "alpha": -8.9
     },
     {
       "month": "2026-07",
@@ -34,10 +34,10 @@
       "entry_price": 197.17,
       "category": "Alpha",
       "conviction": "Medium",
-      "current_price": 204.64,
-      "return_pct": 3.79,
-      "benchmark_pct": 1.59,
-      "alpha": 2.2
+      "current_price": 186.64,
+      "return_pct": -5.34,
+      "benchmark_pct": -1.16,
+      "alpha": -4.18
     },
     {
       "month": "2026-07",
@@ -47,10 +47,10 @@
       "entry_price": 159.71,
       "category": "Tactical",
       "conviction": "Medium",
-      "current_price": 184.87,
-      "return_pct": 15.75,
-      "benchmark_pct": 1.59,
-      "alpha": 14.16
+      "current_price": 184.8,
+      "return_pct": 15.71,
+      "benchmark_pct": -1.16,
+      "alpha": 16.87
     },
     {
       "month": "2026-07",
@@ -60,10 +60,10 @@
       "entry_price": 359.07,
       "category": "Growth",
       "conviction": "Medium",
-      "current_price": 279.84,
-      "return_pct": -22.07,
-      "benchmark_pct": 1.59,
-      "alpha": -23.66
+      "current_price": 284.78,
+      "return_pct": -20.69,
+      "benchmark_pct": -1.16,
+      "alpha": -19.53
     },
     {
       "month": "2026-09",
@@ -73,10 +73,10 @@
       "entry_price": 700.45,
       "category": "Core",
       "conviction": "High",
-      "current_price": 694.81,
-      "return_pct": -0.81,
-      "benchmark_pct": -0.55,
-      "alpha": -0.26
+      "current_price": 675.99,
+      "return_pct": -3.49,
+      "benchmark_pct": -3.24,
+      "alpha": -0.25
     },
     {
       "month": "2026-09",
@@ -86,10 +86,10 @@
       "entry_price": 218.31,
       "category": "Growth",
       "conviction": "High",
-      "current_price": 204.64,
-      "return_pct": -6.26,
-      "benchmark_pct": -0.55,
-      "alpha": -5.71
+      "current_price": 186.64,
+      "return_pct": -14.51,
+      "benchmark_pct": -3.24,
+      "alpha": -11.27
     },
     {
       "month": "2026-09",
@@ -99,10 +99,10 @@
       "entry_price": 335.41,
       "category": "Growth",
       "conviction": "Medium",
-      "current_price": 279.84,
-      "return_pct": -16.57,
-      "benchmark_pct": -0.55,
-      "alpha": -16.02
+      "current_price": 284.78,
+      "return_pct": -15.09,
+      "benchmark_pct": -3.24,
+      "alpha": -11.85
     },
     {
       "month": "2026-09",
@@ -112,10 +112,10 @@
       "entry_price": 171.46,
       "category": "Tactical",
       "conviction": "Medium",
-      "current_price": 184.87,
-      "return_pct": 7.82,
-      "benchmark_pct": -0.55,
-      "alpha": 8.37
+      "current_price": 184.8,
+      "return_pct": 7.78,
+      "benchmark_pct": -3.24,
+      "alpha": 11.02
     },
     {
       "month": "2026-09",
@@ -125,10 +125,10 @@
       "entry_price": 64.66,
       "category": "Tactical",
       "conviction": "Medium",
-      "current_price": 70.02,
-      "return_pct": 8.29,
-      "benchmark_pct": -0.55,
-      "alpha": 8.84
+      "current_price": 61.62,
+      "return_pct": -4.7,
+      "benchmark_pct": -3.24,
+      "alpha": -1.46
     },
     {
       "month": "2026-10",
@@ -138,9 +138,9 @@
       "entry_price": 702.67,
       "category": "Core",
       "conviction": "High",
-      "current_price": 694.81,
-      "return_pct": -1.12,
-      "benchmark_pct": -1.08,
+      "current_price": 675.99,
+      "return_pct": -3.8,
+      "benchmark_pct": -3.76,
       "alpha": -0.04
     },
     {
@@ -151,10 +151,10 @@
       "entry_price": 231.63,
       "category": "Growth",
       "conviction": "High",
-      "current_price": 204.64,
-      "return_pct": -11.65,
-      "benchmark_pct": -1.08,
-      "alpha": -10.57
+      "current_price": 186.64,
+      "return_pct": -19.42,
+      "benchmark_pct": -3.76,
+      "alpha": -15.66
     },
     {
       "month": "2026-10",
@@ -164,10 +164,10 @@
       "entry_price": 62.6,
       "category": "Tactical",
       "conviction": "Medium",
-      "current_price": 70.02,
-      "return_pct": 11.85,
-      "benchmark_pct": -1.08,
-      "alpha": 12.93
+      "current_price": 61.62,
+      "return_pct": -1.57,
+      "benchmark_pct": -3.76,
+      "alpha": 2.19
     },
     {
       "month": "2026-10",
@@ -177,10 +177,10 @@
       "entry_price": 339.09,
       "category": "Growth",
       "conviction": "Medium",
-      "current_price": 279.84,
-      "return_pct": -17.47,
-      "benchmark_pct": -1.08,
-      "alpha": -16.39
+      "current_price": 284.78,
+      "return_pct": -16.02,
+      "benchmark_pct": -3.76,
+      "alpha": -12.26
     },
     {
       "month": "2026-10",
@@ -190,10 +190,10 @@
       "entry_price": 166.63,
       "category": "Hedge",
       "conviction": "Medium",
-      "current_price": 184.87,
-      "return_pct": 10.95,
-      "benchmark_pct": -1.08,
-      "alpha": 12.03
+      "current_price": 184.8,
+      "return_pct": 10.9,
+      "benchmark_pct": -3.76,
+      "alpha": 14.66
     },
     {
       "month": "2026-11",
@@ -203,10 +203,10 @@
       "entry_price": 371.57,
       "category": "Core",
       "conviction": "High",
-      "current_price": 371.57,
-      "return_pct": 0.0,
-      "benchmark_pct": 0.0,
-      "alpha": 0.0
+      "current_price": 361.93,
+      "return_pct": -2.59,
+      "benchmark_pct": -2.7,
+      "alpha": 0.11
     },
     {
       "month": "2026-11",
@@ -216,10 +216,10 @@
       "entry_price": 294.89,
       "category": "Quality",
       "conviction": "High",
-      "current_price": 294.89,
-      "return_pct": 0.0,
-      "benchmark_pct": 0.0,
-      "alpha": 0.0
+      "current_price": 291.31,
+      "return_pct": -1.21,
+      "benchmark_pct": -2.7,
+      "alpha": 1.49
     },
     {
       "month": "2026-11",
@@ -229,10 +229,10 @@
       "entry_price": 184.87,
       "category": "Growth",
       "conviction": "Medium",
-      "current_price": 184.87,
-      "return_pct": 0.0,
-      "benchmark_pct": 0.0,
-      "alpha": 0.0
+      "current_price": 184.8,
+      "return_pct": -0.04,
+      "benchmark_pct": -2.7,
+      "alpha": 2.66
     },
     {
       "month": "2026-11",
@@ -242,10 +242,10 @@
       "entry_price": 70.02,
       "category": "Tactical",
       "conviction": "Medium",
-      "current_price": 70.02,
-      "return_pct": 0.0,
-      "benchmark_pct": 0.0,
-      "alpha": 0.0
+      "current_price": 61.62,
+      "return_pct": -12.0,
+      "benchmark_pct": -2.7,
+      "alpha": -9.3
     },
     {
       "month": "2026-11",
@@ -255,10 +255,10 @@
       "entry_price": 77854.81,
       "category": "Crypto",
       "conviction": "Low",
-      "current_price": 77854.81,
-      "return_pct": 0.0,
-      "benchmark_pct": 0.0,
-      "alpha": 0.0
+      "current_price": 75795.49,
+      "return_pct": -2.65,
+      "benchmark_pct": -2.7,
+      "alpha": 0.05
     }
   ],
   "by_month": [
@@ -267,43 +267,43 @@
       "entry_date": "2026-07-01",
       "invested": 1000,
       "positions": 5,
-      "return_pct": -0.76,
-      "benchmark_pct": 1.59,
-      "alpha": -2.35
+      "return_pct": -3.74,
+      "benchmark_pct": -1.16,
+      "alpha": -2.58
     },
     {
       "month": "2026-09",
       "entry_date": "2026-09-01",
       "invested": 1000,
       "positions": 5,
-      "return_pct": -1.41,
-      "benchmark_pct": -0.55,
-      "alpha": -0.86
+      "return_pct": -5.71,
+      "benchmark_pct": -3.24,
+      "alpha": -2.48
     },
     {
       "month": "2026-10",
       "entry_date": "2026-10-01",
       "invested": 1000,
       "positions": 5,
-      "return_pct": -1.92,
-      "benchmark_pct": -1.08,
-      "alpha": -0.84
+      "return_pct": -6.22,
+      "benchmark_pct": -3.76,
+      "alpha": -2.46
     },
     {
       "month": "2026-11",
       "entry_date": "2026-11-01",
       "invested": 1000,
       "positions": 5,
-      "return_pct": 0.0,
-      "benchmark_pct": 0.0,
-      "alpha": 0.0
+      "return_pct": -3.37,
+      "benchmark_pct": -2.7,
+      "alpha": -0.67
     }
   ],
   "overall": {
     "invested": 4000,
     "positions": 20,
-    "return_pct": -1.02,
-    "benchmark_pct": -0.01,
-    "alpha": -1.01
+    "return_pct": -4.76,
+    "benchmark_pct": -2.71,
+    "alpha": -2.04
   }
 }
